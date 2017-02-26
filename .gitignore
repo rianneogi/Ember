@@ -240,3 +240,7 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+*.sln
+*.VC.db
+*.VC.VC.opendb

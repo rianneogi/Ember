@@ -27,11 +27,11 @@ public:
 	Position();
 	~Position();
 
-	void addMove(std::vector<Move>& vec, Move const& m) const;
+	void addMove(std::vector<Move>& vec, Move const& m);
 
 	void setStartPos();
 	void initializeBitsets();
-	void generateMoves(std::vector<Move>& moves) const;
+	void generateMoves(std::vector<Move>& moves);
 	
 	void makeMove(const Move& m);
 	void unmakeMove(const Move& m);

@@ -36,3 +36,5 @@ public:
 	bool isNullMove() const;
 };
 
+Move createNullMove(int epsquare);
+Move String2Move(const std::string& s);

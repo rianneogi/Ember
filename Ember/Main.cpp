@@ -5,9 +5,14 @@
 int main()
 {
 	TTinit();
+	attacksinit();
+	magicinit();
 	datainit();
 
-	Engine e;
+	UCI uci;
+	uci.run();
+
+	/*Engine e;
 	e.CurrentPos.display(0);
 
 	std::vector<Move> vec;
@@ -21,8 +26,8 @@ int main()
 	for (int i = 1; i < 7; i++)
 	{
 		printf("%d\n", e.perft(i));
-	}
-	_getch();
+	}*/
+	//_getch();
 
 	return 0;
 }

@@ -593,18 +593,18 @@ void Position::unmakeMove(Move const& m)
 	}*/
 }
 
-void Position::addMove(std::vector<Move>& vec, Move const& m) const
+void Position::addMove(std::vector<Move>& vec, Move const& m)
 {
-	/*forceMove(m);
-	if(!underCheck(getOpponent(turn)))
-	{*/
-	vec.push_back(m);
+	makeMove(m);
+	if(!underCheck(getOpponent(Turn)))
+	{
+		vec.push_back(m);
 	//printf("added move %s\n", m.toString());
-	/*}
-	unmakeMove(m);*/
+	}
+	unmakeMove(m);
 }
 
-void Position::generateMoves(std::vector<Move>& moves) const
+void Position::generateMoves(std::vector<Move>& moves)
 {
 	//std::vector<Move> moves(0);
 	//moves.reserve(128);

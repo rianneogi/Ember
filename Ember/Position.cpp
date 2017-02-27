@@ -927,10 +927,10 @@ bool Position::underCheck(int turn) const
 
 int Position::getGameStatus()
 {
-	if (isRepetition())
+	/*if (isRepetition())
 	{
 		return STATUS_3FOLDREP;
-	}
+	}*/
 	std::vector<Move> vec;
 	vec.reserve(128);
 	generateMoves(vec);

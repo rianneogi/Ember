@@ -24,7 +24,7 @@ uint64_t Engine::perft(int depth)
 
 	if (CurrentPos.getGameStatus() != STATUS_NOTOVER)
 	{
-		return 1;
+		return 0;
 	}
 
 	uint64_t count = 0;

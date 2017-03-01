@@ -4,6 +4,7 @@ std::string pieceStrings[] = { "- ","P ","N ","B ","R ","Q ","K ","p ","n ","b "
 
 Position::Position()
 {
+	setStartPos();
 }
 
 Position::~Position()
@@ -991,6 +992,306 @@ void Position::display(int flip)
 			printf("%s", pieceStrings[Squares[63 - i]]);
 	}
 	printf("\n");
+}
+
+void Position::clearBoard()
+{
+	Pieces[COLOR_WHITE][PIECE_PAWN] = 0;
+	Pieces[COLOR_BLACK][PIECE_PAWN] = 0;
+	Pieces[COLOR_WHITE][PIECE_ROOK] = 0;
+	Pieces[COLOR_BLACK][PIECE_ROOK] = 0;
+	Pieces[COLOR_WHITE][PIECE_KNIGHT] = 0;
+	Pieces[COLOR_BLACK][PIECE_KNIGHT] = 0;
+	Pieces[COLOR_WHITE][PIECE_BISHOP] = 0;
+	Pieces[COLOR_BLACK][PIECE_BISHOP] = 0;
+	Pieces[COLOR_WHITE][PIECE_QUEEN] = 0;
+	Pieces[COLOR_BLACK][PIECE_QUEEN] = 0;
+	Pieces[COLOR_WHITE][PIECE_KING] = 0;
+	Pieces[COLOR_BLACK][PIECE_KING] = 0;
+	OccupiedSq = 0;
+	/*OccupiedSq90 = 0;
+	OccupiedSq45 = 0;
+	OccupiedSq135 = 0;*/
+	for (int i = 0; i<64; i++)
+	{
+		Squares[i] = SQUARE_EMPTY;
+	}
+
+	Turn = COLOR_WHITE;
+
+	for (int i = 0; i<2; i++)
+	{
+		for (int j = 0; j<2; j++)
+		{
+			Castling[i][j] = 0;
+		}
+	}
+	EPSquare = 0;
+
+	HashKey = 0x0;
+	//PawnKey = 0x0;
+	for (int i = 0; i<64; i++)
+	{
+		if (Squares[i] != SQUARE_EMPTY)
+		{
+			HashKey ^= TT_PieceKey[getSquare2Color(Squares[i])][getSquare2Piece(Squares[i])][i];
+			/*if (Squares[i] == SQUARE_WHITEPAWN || Squares[i] == SQUARE_BLACKPAWN)
+			{
+				PawnKey ^= TT_PieceKey[getSquare2Color(Squares[i])][PIECE_PAWN][i];
+			}*/
+		}
+	}
+	for (int i = 0; i<2; i++)
+	{
+		for (int j = 0; j<2; j++)
+		{
+			if (Castling[i][j] == 1)
+				HashKey ^= TT_CastlingKey[i][j];
+		}
+	}
+	HashKey ^= TT_EPKey[EPSquare];
+
+	movelist = std::vector<Move>(0);
+	hashlist = std::vector<Bitset>(0);
+}
+
+void Position::initializeBitsets()
+{
+	OccupiedSq = 0;
+	/*OccupiedSq90 = 0;
+	OccupiedSq45 = 0;
+	OccupiedSq135 = 0;*/
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < 6; j++)
+		{
+			Pieces[i][j] = 0;
+		}
+	}
+	for (int i = 0; i < 64; i++)
+	{
+		if (Squares[i] != SQUARE_EMPTY)
+		{
+			Pieces[getSquare2Color(Squares[i])][getSquare2Piece(Squares[i])] |= getPos2Bit(i);
+			OccupiedSq |= getPos2Bit(i);
+		}
+
+	}
+	/*for (int i = 0;i<64;i++)
+	{
+	OccupiedSq45 |= getPos2Bit(getturn45(i))*((OccupiedSq >> i) % 2);
+	OccupiedSq135 |= getPos2Bit(getturn135(i))*((OccupiedSq >> i) % 2);
+	OccupiedSq90 |= getPos2Bit(getturn90(i))*((OccupiedSq >> i) % 2);
+	}*/
+	HashKey = 0x0;
+	//PawnKey = 0x0;
+	for (int i = 0; i<64; i++)
+	{
+		if (Squares[i] != SQUARE_EMPTY)
+		{
+			HashKey ^= TT_PieceKey[getSquare2Color(Squares[i])][getSquare2Piece(Squares[i])][i];
+			if (Squares[i] == SQUARE_WHITEPAWN || Squares[i] == SQUARE_BLACKPAWN)
+			{
+				HashKey ^= TT_PieceKey[getSquare2Color(Squares[i])][PIECE_PAWN][i];
+			}
+		}
+	}
+	for (int i = 0; i<2; i++)
+	{
+		for (int j = 0; j<2; j++)
+		{
+			if (Castling[i][j] == 1)
+				HashKey ^= TT_CastlingKey[i][j];
+		}
+	}
+	HashKey ^= TT_EPKey[EPSquare];
+	if (Turn == COLOR_BLACK)
+		HashKey ^= TT_ColorKey;
+}
+
+void Position::placePiece(int square, int location)
+{
+	Squares[location] = square;
+}
+
+void Position::loadFromFEN(std::string fen)
+{
+	clearBoard();
+	std::string s = getStringToken(fen, ' ', 1);
+	int currsquare = 63;
+	for (int i = 0; i < s.size(); i++)
+	{
+		//cout << "info string fen " << s.at(i) << endl;
+		if (s.at(i) >= '0' && s.at(i) <= '9')
+		{
+			currsquare -= s.at(i) - 48;
+		}
+		else if (s.at(i) == 'K')
+		{
+			placePiece(SQUARE_WHITEKING, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'k')
+		{
+			placePiece(SQUARE_BLACKKING, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'Q')
+		{
+			placePiece(SQUARE_WHITEQUEEN, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'q')
+		{
+			placePiece(SQUARE_BLACKQUEEN, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'R')
+		{
+			placePiece(SQUARE_WHITEROOK, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'r')
+		{
+			placePiece(SQUARE_BLACKROOK, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'N')
+		{
+			placePiece(SQUARE_WHITEKNIGHT, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'n')
+		{
+			placePiece(SQUARE_BLACKKNIGHT, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'B')
+		{
+			placePiece(SQUARE_WHITEBISHOP, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'b')
+		{
+			placePiece(SQUARE_BLACKBISHOP, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'P')
+		{
+			placePiece(SQUARE_WHITEPAWN, currsquare);
+			currsquare--;
+		}
+		else if (s.at(i) == 'p')
+		{
+			placePiece(SQUARE_BLACKPAWN, currsquare);
+			currsquare--;
+		}
+	}
+
+	s = getStringToken(fen, ' ', 2);
+	if (s == "b")
+	{
+		Turn = COLOR_BLACK;
+	}
+	else
+	{
+		Turn = COLOR_WHITE;
+	}
+
+	s = getStringToken(fen, ' ', 3);
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < 2; j++)
+		{
+			Castling[i][j] = 0;
+		}
+	}
+	if (s != "-")
+	{
+		for (int i = 0; i < s.size(); i++)
+		{
+			if (s.at(i) == 'K')
+			{
+				Castling[0][0] = 1;
+			}
+			if (s.at(i) == 'Q')
+			{
+				Castling[0][1] = 1;
+			}
+			if (s.at(i) == 'k')
+			{
+				Castling[1][0] = 1;
+			}
+			if (s.at(i) == 'q')
+			{
+				Castling[1][1] = 1;
+			}
+		}
+	}
+
+	s = getStringToken(fen, ' ', 4);
+	if (s != "-")
+	{
+		EPSquare = Sq2Int(s);
+	}
+	else
+	{
+		EPSquare = 0;
+	}
+
+	initializeBitsets();
+}
+
+std::string getStringToken(std::string str, char delimiter, int token)
+{
+	int x = 1;
+	std::string s = "";
+	for (int i = 0; i<str.size(); i++)
+	{
+		if (str.at(i) == delimiter && i != 0 && str.at(i - 1) != delimiter)
+		{
+			x++;
+		}
+		else if (x == token && i == str.size() - 1)
+		{
+			s += str.at(i);
+			return s;
+		}
+		else if (x>token)
+		{
+			return s;
+		}
+		else if (x == token)
+		{
+			s += str.at(i);
+		}
+		else if (i == str.size() - 1 && x<token)
+		{
+			return "";
+		}
+	}
+	return "";
+}
+
+int getStringTokenPosition(std::string str, char delimiter, int token)
+{
+	int x = 1;
+	for (int i = 0; i<str.size(); i++)
+	{
+		if (str.at(i) == delimiter)
+		{
+			x++;
+		}
+		if (x == token)
+		{
+			return i + 1;
+		}
+		else if (i == str.size() - 1 && x<token)
+		{
+			return -1;
+		}
+	}
+	return -1;
 }
 
 

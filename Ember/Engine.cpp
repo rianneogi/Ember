@@ -2,7 +2,6 @@
 
 Engine::Engine()
 {
-	CurrentPos.setStartPos();
 }
 
 Engine::~Engine()

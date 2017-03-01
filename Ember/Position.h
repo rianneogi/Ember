@@ -31,6 +31,10 @@ public:
 
 	void setStartPos();
 	void initializeBitsets();
+	void clearBoard();
+	void placePiece(int square, int location);
+	void loadFromFEN(std::string fen);
+
 	void generateMoves(std::vector<Move>& moves);
 	
 	void makeMove(const Move& m);
@@ -66,3 +70,6 @@ inline Bitset getQueenAttacks(int sq, Bitset occ)
 	m |= getBishopAttacks(sq, occ);
 	return m;
 }
+
+std::string getStringToken(std::string str, char delimiter, int token);
+int getStringTokenPosition(std::string str, char delimiter, int token);

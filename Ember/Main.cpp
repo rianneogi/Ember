@@ -9,6 +9,9 @@ int main()
 	magicinit();
 	datainit();
 
+	//Engine e;
+	//e.CurrentPos.
+
 	UCI uci;
 	uci.run();
 

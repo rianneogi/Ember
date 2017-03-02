@@ -1055,60 +1055,6 @@ void Position::clearBoard()
 	hashlist = std::vector<Bitset>(0);
 }
 
-void Position::initializeBitsets()
-{
-	OccupiedSq = 0;
-	/*OccupiedSq90 = 0;
-	OccupiedSq45 = 0;
-	OccupiedSq135 = 0;*/
-	for (int i = 0; i < 2; i++)
-	{
-		for (int j = 0; j < 6; j++)
-		{
-			Pieces[i][j] = 0;
-		}
-	}
-	for (int i = 0; i < 64; i++)
-	{
-		if (Squares[i] != SQUARE_EMPTY)
-		{
-			Pieces[getSquare2Color(Squares[i])][getSquare2Piece(Squares[i])] |= getPos2Bit(i);
-			OccupiedSq |= getPos2Bit(i);
-		}
-
-	}
-	/*for (int i = 0;i<64;i++)
-	{
-	OccupiedSq45 |= getPos2Bit(getturn45(i))*((OccupiedSq >> i) % 2);
-	OccupiedSq135 |= getPos2Bit(getturn135(i))*((OccupiedSq >> i) % 2);
-	OccupiedSq90 |= getPos2Bit(getturn90(i))*((OccupiedSq >> i) % 2);
-	}*/
-	HashKey = 0x0;
-	//PawnKey = 0x0;
-	for (int i = 0; i<64; i++)
-	{
-		if (Squares[i] != SQUARE_EMPTY)
-		{
-			HashKey ^= TT_PieceKey[getSquare2Color(Squares[i])][getSquare2Piece(Squares[i])][i];
-			if (Squares[i] == SQUARE_WHITEPAWN || Squares[i] == SQUARE_BLACKPAWN)
-			{
-				HashKey ^= TT_PieceKey[getSquare2Color(Squares[i])][PIECE_PAWN][i];
-			}
-		}
-	}
-	for (int i = 0; i<2; i++)
-	{
-		for (int j = 0; j<2; j++)
-		{
-			if (Castling[i][j] == 1)
-				HashKey ^= TT_CastlingKey[i][j];
-		}
-	}
-	HashKey ^= TT_EPKey[EPSquare];
-	if (Turn == COLOR_BLACK)
-		HashKey ^= TT_ColorKey;
-}
-
 void Position::placePiece(int square, int location)
 {
 	Squares[location] = square;

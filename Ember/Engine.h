@@ -2,6 +2,8 @@
 
 #include "Position.h"
 
+extern const int CONST_INF;
+
 class Engine
 {
 public:
@@ -11,7 +13,8 @@ public:
 	~Engine();
 
 	void go();
-	int AlphaBeta();
+	int AlphaBeta(int alpha, int beta, int depth);
+	int Negamax(int depth);
 
 	int LeafEval();
 	int QuiescenceSearch();

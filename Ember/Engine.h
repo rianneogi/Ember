@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PositionNN.h"
+#include "Net.h"
 
 extern const int CONST_INF;
 

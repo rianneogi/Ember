@@ -49,3 +49,12 @@ void net()
 
 	b.setErrorFunction(new MeanSquaredError(input, output, nullptr));
 }
+
+void train(Tensor inputs, Tensor outputs)
+{
+}
+
+Tensor moveToTensor(Move m)
+{
+	return Tensor();
+}

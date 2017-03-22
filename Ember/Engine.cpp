@@ -1,10 +1,11 @@
 #include "Engine.h"
 
+const int DATABASE_SIZE = 1000;
 const int CONST_INF = 10000;
 
 Engine::Engine()
 {
-	Database = new Data[1000];
+	Database = new Data[DATABASE_SIZE];
 	DBCounter = 0;
 }
 
@@ -87,7 +88,18 @@ int Engine::Negamax(int depth)
 	d.depth = depth;
 	d.move = bestmove;
 	Database[DBCounter] = d;
+
 	DBCounter++;
+	if (DBCounter == DATABASE_SIZE)
+	{
+		DBCounter = 0;
+	}
+
+	for (int i = 0; i < 20; i++)
+	{
+		int id = rand() % DBCounter;
+		train(Database[id].pos.mData, moveToTensor(Database[id].move));
+	}
 
 	return bestscore;
 }

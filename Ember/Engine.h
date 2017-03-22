@@ -1,13 +1,22 @@
 #pragma once
 
-#include "Position.h"
+#include "PositionNN.h"
 
 extern const int CONST_INF;
+
+struct Data
+{
+	PositionNN pos;
+	Move move;
+	int depth;
+};
 
 class Engine
 {
 public:
 	Position CurrentPos;
+	Data* Database;
+	unsigned int DBCounter;
 
 	Engine();
 	~Engine();

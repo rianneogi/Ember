@@ -15,12 +15,6 @@ public:
 	bool operator==(Move const& m) const;
 	bool operator!=(Move const& m) const;
 	bool isEquivalent(Move const& m) const; //checks whether to, from and special are equal
-	bool operator<(Move const& m) const;
-	bool operator>(Move const& m) const;
-	Bitset getbit() const;
-	Bitset getbit90() const;
-	Bitset getbit45() const;
-	Bitset getbit135() const;
 	Bitset getFrom() const; //int type
 	Bitset getTo() const; //int type
 	Bitset getMovingPiece() const; //Piece type

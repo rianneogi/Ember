@@ -4,10 +4,14 @@ const int CONST_INF = 10000;
 
 Engine::Engine()
 {
+	Database = new Data[1000];
+	DBCounter = 0;
 }
 
 Engine::~Engine()
 {
+	delete[] Database;
+	Database = NULL;
 }
 
 void Engine::go()
@@ -16,6 +20,15 @@ void Engine::go()
 
 int Engine::AlphaBeta(int alpha, int beta, int depth)
 {
+	int status = CurrentPos.getGameStatus();
+	if (status != STATUS_NOTOVER)
+	{
+		if (status == STATUS_3FOLDREP || status == STATUS_STALEMATE || status == STATUS_INSUFFICIENTMAT)
+		{
+			return 0;
+		}
+	}
+
 	if (depth == 0)
 		return LeafEval();
 
@@ -25,7 +38,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth)
 	int bestscore = -CONST_INF;
 	for (int i = 0; i < moves.size(); i++)
 	{
-		CurrentPos.makeMove(moves[i]);
+		CurrentPos.makeMove(moves[i]); 
 		int score = -AlphaBeta(-beta, -alpha, depth - 1);
 		CurrentPos.unmakeMove(moves[i]);
 
@@ -55,6 +68,7 @@ int Engine::Negamax(int depth)
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
 	int bestscore = -CONST_INF;
+	Move bestmove;
 	for (int i = 0; i < moves.size(); i++)
 	{
 		CurrentPos.makeMove(moves[i]);
@@ -64,8 +78,17 @@ int Engine::Negamax(int depth)
 		if (score > bestscore)
 		{
 			bestscore = score;
+			bestmove = moves[i];
 		}
 	}
+
+	Data d;
+	d.pos = PositionNN(CurrentPos);
+	d.depth = depth;
+	d.move = bestmove;
+	Database[DBCounter] = d;
+	DBCounter++;
+
 	return bestscore;
 }
 

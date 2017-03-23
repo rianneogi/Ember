@@ -9,45 +9,40 @@
 #include <ErrorFunctions\MeanSquaredError.h>
 #include <Optimizers\AdamOptimizer.h>
 
-void net()
+Net::Net()
 {
-	Board b;
-	Blob* input = b.newBlob(make_shape(14,8,8));
+	init_net();
+}
 
-	Blob* conv_king = b.newBlob(make_shape(100,8,8));
-	Blob* conv_knight = b.newBlob(make_shape(100, 8, 8));
-	Blob* conv_rank = b.newBlob(make_shape(100, 8));
-	Blob* conv_file = b.newBlob(make_shape(100, 8));
-	Blob* conv_diag = b.newBlob(make_shape(100, 30));
+Net::~Net()
+{
 
-	Blob* fc_king = b.newBlob(make_shape(100, 8, 8));
-	Blob* fc_knight = b.newBlob(make_shape(100, 8, 8));
-	Blob* fc_rank = b.newBlob(make_shape(100, 8));
-	Blob* fc_file = b.newBlob(make_shape(100, 8));
-	Blob* fc_diag = b.newBlob(make_shape(100, 30));
+}
 
-	Blob* act_king = b.newBlob(make_shape(100, 8, 8));
-	Blob* act_knight = b.newBlob(make_shape(100, 8, 8));
-	Blob* act_rank = b.newBlob(make_shape(100, 8));
-	Blob* act_file = b.newBlob(make_shape(100, 8));
-	Blob* act_diag = b.newBlob(make_shape(100, 30));
+void Net::init_net()
+{
+	mBoard = new Board();
+	Input = mBoard->newBlob(make_shape(14,8,8));
+	ConvKing = mBoard->newBlob(make_shape(100,8,8));
+	FCKing = mBoard->newBlob(make_shape(100, 8, 8));
+	ActKing = mBoard->newBlob(make_shape(100, 8, 8));
 
-	Blob* FC1 = b.newBlob(make_shape(100));
-	Blob* act_FC1 = b.newBlob(make_shape(100));
-	Blob* FC2 = b.newBlob(make_shape(2,8,8));
-	Blob* output = b.newBlob(make_shape(2, 8, 8));
+	FullFC1 = mBoard->newBlob(make_shape(100));
+	FullFCAct1 = mBoard->newBlob(make_shape(100));
+	FullFC2 = mBoard->newBlob(make_shape(2,8,8));
+	Output = mBoard->newBlob(make_shape(2, 8, 8));
 
-	b.setOptimizer(new AdamOptimizer(0.05));
+	mBoard->setOptimizer(new AdamOptimizer(0.05));
 
-	b.addNeuron(new Im2ColNeuron(input, conv_king, 3, 3));
-	b.addNeuron(new ConvNeuron(conv_king, fc_king, 1));
-	b.addNeuron(new LeakyReLUNeuron(fc_king, act_king, 0.05));
-	b.addNeuron(new FullyConnectedNeuron(act_king, FC1, 1));
-	b.addNeuron(new LeakyReLUNeuron(FC1, act_FC1, 0.05));
-	b.addNeuron(new FullyConnectedNeuron(act_FC1, FC2, 1));
-	b.addNeuron(new TanhNeuron(FC2, output));
+	mBoard->addNeuron(new Im2ColNeuron(Input, ConvKing, 3, 3));
+	mBoard->addNeuron(new ConvNeuron(ConvKing, FCKing, 1));
+	mBoard->addNeuron(new LeakyReLUNeuron(FCKing, ActKing, 0.05));
+	mBoard->addNeuron(new FullyConnectedNeuron(ActKing, FullFC1, 1));
+	mBoard->addNeuron(new LeakyReLUNeuron(FullFC1, FullFCAct1, 0.05));
+	mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, FullFC2, 1));
+	mBoard->addNeuron(new TanhNeuron(FullFC2, Output));
 
-	b.setErrorFunction(new MeanSquaredError(input, output, nullptr));
+	mBoard->setErrorFunction(new MeanSquaredError(Input, Output, nullptr));
 }
 
 void train(Tensor inputs, Tensor outputs)

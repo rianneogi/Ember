@@ -18,6 +18,8 @@ public:
 	Data* Database;
 	unsigned int DBCounter;
 
+	Net* mNet;
+
 	Engine();
 	~Engine();
 

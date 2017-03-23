@@ -22,14 +22,14 @@ Net::~Net()
 void Net::init_net()
 {
 	mBoard = new Board();
-	Input = mBoard->newBlob(make_shape(14,8,8));
-	ConvKing = mBoard->newBlob(make_shape(100,8,8));
+	Input = mBoard->newBlob(make_shape(14, 8, 8));
+	ConvKing = mBoard->newBlob(make_shape(100, 8, 8));
 	FCKing = mBoard->newBlob(make_shape(100, 8, 8));
 	ActKing = mBoard->newBlob(make_shape(100, 8, 8));
 
 	FullFC1 = mBoard->newBlob(make_shape(100));
 	FullFCAct1 = mBoard->newBlob(make_shape(100));
-	FullFC2 = mBoard->newBlob(make_shape(2,8,8));
+	FullFC2 = mBoard->newBlob(make_shape(2, 8, 8));
 	Output = mBoard->newBlob(make_shape(2, 8, 8));
 
 	mBoard->setOptimizer(new AdamOptimizer(0.05));

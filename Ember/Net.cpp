@@ -9,28 +9,29 @@
 #include <ErrorFunctions\MeanSquaredError.h>
 #include <Optimizers\AdamOptimizer.h>
 
-Net::Net()
+Net::Net() : BatchSize(20)
 {
 	init_net();
 }
 
 Net::~Net()
 {
-
+	delete mBoard;
+	mBoard = NULL;
 }
 
 void Net::init_net()
 {
 	mBoard = new Board();
-	Input = mBoard->newBlob(make_shape(14, 8, 8));
-	ConvKing = mBoard->newBlob(make_shape(100, 8, 8));
-	FCKing = mBoard->newBlob(make_shape(100, 8, 8));
-	ActKing = mBoard->newBlob(make_shape(100, 8, 8));
+	Input = mBoard->newBlob(make_shape(BatchSize, 14, 8, 8));
+	ConvKing = mBoard->newBlob(make_shape(BatchSize*7*7, 14*9));
+	FCKing = mBoard->newBlob(make_shape(BatchSize*7*7, 14*9));
+	ActKing = mBoard->newBlob(make_shape(BatchSize*7*7, 14*9));
 
-	FullFC1 = mBoard->newBlob(make_shape(100));
-	FullFCAct1 = mBoard->newBlob(make_shape(100));
-	FullFC2 = mBoard->newBlob(make_shape(2, 8, 8));
-	Output = mBoard->newBlob(make_shape(2, 8, 8));
+	FullFC1 = mBoard->newBlob(make_shape(BatchSize, 100));
+	FullFCAct1 = mBoard->newBlob(make_shape(BatchSize, 100));
+	FullFC2 = mBoard->newBlob(make_shape(BatchSize, 2*8*8));
+	Output = mBoard->newBlob(make_shape(BatchSize, 2, 8, 8));
 
 	mBoard->setOptimizer(new AdamOptimizer(0.05));
 
@@ -45,11 +46,16 @@ void Net::init_net()
 	mBoard->setErrorFunction(new MeanSquaredError(Input, Output, nullptr));
 }
 
-void train(Tensor inputs, Tensor outputs)
+void Net::train(Tensor inputs, Tensor outputs)
 {
+	mBoard->train(inputs, outputs, 1, BatchSize);
 }
 
 Tensor moveToTensor(Move m)
 {
-	return Tensor();
+	Tensor t(make_shape(2, 64));
+	t.setzero();
+	t(0, m.getFrom()) = 1;
+	t(1, m.getTo()) = 1;
+	return t;
 }

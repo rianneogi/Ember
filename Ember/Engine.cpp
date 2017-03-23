@@ -7,12 +7,15 @@ Engine::Engine()
 {
 	Database = new Data[DATABASE_SIZE];
 	DBCounter = 0;
+	mNet = new Net();
 }
 
 Engine::~Engine()
 {
 	delete[] Database;
+	delete mNet;
 	Database = NULL;
+	mNet = NULL;
 }
 
 void Engine::go()
@@ -98,7 +101,7 @@ int Engine::Negamax(int depth)
 	for (int i = 0; i < 20; i++)
 	{
 		int id = rand() % DBCounter;
-		train(Database[id].pos.mData, moveToTensor(Database[id].move));
+		mNet->train(Database[id].pos.mData, moveToTensor(Database[id].move));
 	}
 
 	return bestscore;

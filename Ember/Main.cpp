@@ -9,6 +9,9 @@ int main()
 	magicinit();
 	datainit();
 
+	Engine e;
+	e.Negamax(6);
+
 	UCI uci;
 	uci.run();
 

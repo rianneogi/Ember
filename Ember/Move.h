@@ -25,6 +25,7 @@ public:
 	Bitset getBKC() const;
 	Bitset getBQC() const;
 	Bitset getEP() const;
+	Bitset getbit() const;
 	Bitset getRelevant() const; //gets all bits except casting and ep bits
 	std::string toString() const;
 	bool isNullMove() const;

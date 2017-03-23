@@ -16,11 +16,14 @@ public:
 	Blob* FullFC2;
 	Blob* Output;
 
+	uint64_t BatchSize;
+
 	Net();
 	~Net();
 
 	void init_net();
 
 	void train(Tensor inputs, Tensor outputs);
-	Tensor moveToTensor(Move m);
 };
+
+Tensor moveToTensor(Move m);

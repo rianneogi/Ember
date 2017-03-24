@@ -20,12 +20,13 @@ class Engine
 public:
 	Position CurrentPos;
 	Data* Database;
-	unsigned int DBCounter;
-	unsigned int DBSize;
+	size_t DBCounter;
+	size_t DBSize;
 
 	Net* mNet;
 	Tensor InputTensor;
 	Tensor OutputTensor;
+	uint64_t BatchSize;
 
 	Engine();
 	~Engine();

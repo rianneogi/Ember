@@ -3,12 +3,14 @@
 const int DATABASE_SIZE = 1000;
 const int CONST_INF = 10000;
 
-Engine::Engine() : InputTensor(make_shape(20,14,8,8)), OutputTensor(make_shape(20, 2, 64))
+const int BATCH_SIZE = 64;
+
+Engine::Engine() : BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 14, 8, 8)), OutputTensor(make_shape(BATCH_SIZE, 2, 64))
 {
 	Database = new Data[DATABASE_SIZE];
 	DBCounter = 0;
 	DBSize = 0;
-	mNet = new Net();
+	mNet = new Net(BatchSize);
 }
 
 Engine::~Engine()
@@ -112,9 +114,9 @@ int Engine::Negamax(int depth)
 			DBSize++;
 		}
 
-		for (int i = 0; i < 20; i++)
+		for (uint64_t i = 0; i < BatchSize; i++)
 		{
-			int id = rand() % DBSize;
+			size_t id = rand() % DBSize;
 			memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.mData.mData, sizeof(Float) * 14 * 8 * 8);
 			memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 		}

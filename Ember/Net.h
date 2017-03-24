@@ -19,6 +19,7 @@ public:
 	uint64_t BatchSize;
 
 	Net();
+	Net(uint64_t batch_size);
 	~Net();
 
 	void init_net();

@@ -14,6 +14,11 @@ Net::Net() : BatchSize(20)
 	init_net();
 }
 
+Net::Net(uint64_t batch_size) : BatchSize(batch_size)
+{
+	init_net();
+}
+
 Net::~Net()
 {
 	delete mBoard;

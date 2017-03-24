@@ -3,7 +3,7 @@
 const int DATABASE_SIZE = 1000;
 const int CONST_INF = 10000;
 
-Engine::Engine()
+Engine::Engine() : InputTensor(make_shape(20,14,8,8)), OutputTensor(make_shape(20, 2, 64))
 {
 	Database = new Data[DATABASE_SIZE];
 	DBCounter = 0;
@@ -86,11 +86,10 @@ int Engine::Negamax(int depth)
 		}
 	}
 
-	Data d;
-	d.pos = PositionNN(CurrentPos);
-	d.depth = depth;
-	d.move = bestmove;
-	Database[DBCounter] = d;
+	Data* d = &Database[DBCounter];
+	d->pos = PositionNN(CurrentPos);
+	d->depth = depth;
+	moveToTensor(bestmove, &d->move);
 
 	DBCounter++;
 	if (DBCounter == DATABASE_SIZE)
@@ -98,11 +97,18 @@ int Engine::Negamax(int depth)
 		DBCounter = 0;
 	}
 
+	//Tensor input(make_shape(20, 14, 8, 8));
+	//Tensor output(make_shape(2, 64));
+
 	for (int i = 0; i < 20; i++)
 	{
 		int id = rand() % DBCounter;
-		mNet->train(Database[id].pos.mData, moveToTensor(Database[id].move));
+		memcpy(&InputTensor(i*14*8*8), &Database[id].pos.mData.mData, sizeof(Float) * 14 * 8 * 8);
+		memcpy(&OutputTensor(i*2*8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 	}
+	mNet->train(InputTensor, OutputTensor);
+	//input.freemem();
+	//output.freemem();
 
 	return bestscore;
 }
@@ -155,4 +161,13 @@ uint64_t Engine::perft(int depth)
 	assert(os == CurrentPos.OccupiedSq);
 
 	return count;
+}
+
+Data::Data() : move(make_shape(20, 2, 64))
+{
+}
+
+Data::~Data()
+{
+	move.freemem();
 }

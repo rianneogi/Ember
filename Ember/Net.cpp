@@ -24,14 +24,14 @@ void Net::init_net()
 {
 	mBoard = new Board();
 	Input = mBoard->newBlob(make_shape(BatchSize, 14, 8, 8));
-	ConvKing = mBoard->newBlob(make_shape(BatchSize*7*7, 14*9));
-	FCKing = mBoard->newBlob(make_shape(BatchSize*7*7, 14*9));
-	ActKing = mBoard->newBlob(make_shape(BatchSize*7*7, 14*9));
+	ConvKing = mBoard->newBlob(make_shape(BatchSize*6*6, 14*9));
+	FCKing = mBoard->newBlob(make_shape(BatchSize*6*6, 14*9));
+	ActKing = mBoard->newBlob(make_shape(BatchSize, 14*9*6*6)); //resize in activation neuron
 
 	FullFC1 = mBoard->newBlob(make_shape(BatchSize, 100));
 	FullFCAct1 = mBoard->newBlob(make_shape(BatchSize, 100));
-	FullFC2 = mBoard->newBlob(make_shape(BatchSize, 2*8*8));
-	Output = mBoard->newBlob(make_shape(BatchSize, 2, 8, 8));
+	FullFC2 = mBoard->newBlob(make_shape(BatchSize, 2*64));
+	Output = mBoard->newBlob(make_shape(BatchSize, 2, 64));
 
 	mBoard->setOptimizer(new AdamOptimizer(0.05));
 
@@ -51,11 +51,10 @@ void Net::train(Tensor inputs, Tensor outputs)
 	mBoard->train(inputs, outputs, 1, BatchSize);
 }
 
-Tensor moveToTensor(Move m)
+void moveToTensor(Move m, Tensor* t)
 {
-	Tensor t(make_shape(2, 64));
-	t.setzero();
-	t(0, m.getFrom()) = 1;
-	t(1, m.getTo()) = 1;
-	return t;
+	//Tensor t(make_shape(2, 64));
+	t->setzero();
+	t->operator()(0, m.getFrom()) = 1;
+	t->operator()(1, m.getTo()) = 1;
 }

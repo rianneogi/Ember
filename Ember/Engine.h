@@ -6,8 +6,12 @@ extern const int CONST_INF;
 
 struct Data
 {
+public:
+	Data();
+	~Data();
+
 	PositionNN pos;
-	Move move;
+	Tensor move;
 	int depth;
 };
 
@@ -19,6 +23,8 @@ public:
 	unsigned int DBCounter;
 
 	Net* mNet;
+	Tensor InputTensor;
+	Tensor OutputTensor;
 
 	Engine();
 	~Engine();

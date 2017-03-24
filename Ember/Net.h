@@ -26,4 +26,4 @@ public:
 	void train(Tensor inputs, Tensor outputs);
 };
 
-Tensor moveToTensor(Move m);
+void moveToTensor(Move m, Tensor* t);

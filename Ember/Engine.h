@@ -21,6 +21,7 @@ public:
 	Position CurrentPos;
 	Data* Database;
 	unsigned int DBCounter;
+	unsigned int DBSize;
 
 	Net* mNet;
 	Tensor InputTensor;

@@ -48,7 +48,9 @@ void Net::init_net()
 
 void Net::train(Tensor inputs, Tensor outputs)
 {
-	mBoard->train(inputs, outputs, 1, BatchSize);
+	//mBoard->train(inputs, outputs, 1, BatchSize);
+	mBoard->backprop(inputs, outputs);
+	mBoard->mOptimizer->optimize();
 }
 
 void moveToTensor(Move m, Tensor* t)

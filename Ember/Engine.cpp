@@ -7,6 +7,7 @@ Engine::Engine() : InputTensor(make_shape(20,14,8,8)), OutputTensor(make_shape(2
 {
 	Database = new Data[DATABASE_SIZE];
 	DBCounter = 0;
+	DBSize = 0;
 	mNet = new Net();
 }
 
@@ -68,6 +69,8 @@ int Engine::Negamax(int depth)
 	if (depth == 0)
 		return LeafEval();
 
+	int leafeval = LeafEval();
+
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
@@ -75,6 +78,11 @@ int Engine::Negamax(int depth)
 	Move bestmove;
 	for (int i = 0; i < moves.size(); i++)
 	{
+		if (depth == 4)
+		{
+			printf("Move: %s\n", moves[i].toString());
+		}
+
 		CurrentPos.makeMove(moves[i]);
 		int score = -Negamax(depth - 1);
 		CurrentPos.unmakeMove(moves[i]);
@@ -86,29 +94,32 @@ int Engine::Negamax(int depth)
 		}
 	}
 
-	Data* d = &Database[DBCounter];
-	d->pos = PositionNN(CurrentPos);
-	d->depth = depth;
-	moveToTensor(bestmove, &d->move);
-
-	DBCounter++;
-	if (DBCounter == DATABASE_SIZE)
+	if (bestscore != leafeval)
 	{
-		DBCounter = 0;
-	}
+		Data* d = &Database[DBCounter];
+		d->pos = PositionNN(CurrentPos);
+		d->depth = depth;
+		moveToTensor(bestmove, &d->move);
 
-	//Tensor input(make_shape(20, 14, 8, 8));
-	//Tensor output(make_shape(2, 64));
+		DBCounter++;
+		if (DBCounter == DATABASE_SIZE)
+		{
+			DBCounter = 0;
+		}
 
-	for (int i = 0; i < 20; i++)
-	{
-		int id = rand() % DBCounter;
-		memcpy(&InputTensor(i*14*8*8), &Database[id].pos.mData.mData, sizeof(Float) * 14 * 8 * 8);
-		memcpy(&OutputTensor(i*2*8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
+		if (DBSize < DATABASE_SIZE)
+		{
+			DBSize++;
+		}
+
+		for (int i = 0; i < 20; i++)
+		{
+			int id = rand() % DBSize;
+			memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.mData.mData, sizeof(Float) * 14 * 8 * 8);
+			memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
+		}
+		mNet->train(InputTensor, OutputTensor);
 	}
-	mNet->train(InputTensor, OutputTensor);
-	//input.freemem();
-	//output.freemem();
 
 	return bestscore;
 }

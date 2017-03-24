@@ -10,7 +10,8 @@ int main()
 	datainit();
 
 	Engine e;
-	e.Negamax(6);
+	e.Negamax(4);
+	printf("done\n");
 
 	UCI uci;
 	uci.run();

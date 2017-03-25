@@ -35,8 +35,10 @@ void Net::init_net()
 
 	FullFC1 = mBoard->newBlob(make_shape(BatchSize, 100));
 	FullFCAct1 = mBoard->newBlob(make_shape(BatchSize, 100));
-	FullFC2 = mBoard->newBlob(make_shape(BatchSize, 2*64));
-	Output = mBoard->newBlob(make_shape(BatchSize, 2, 64));
+	OutputMoveFC = mBoard->newBlob(make_shape(BatchSize, 2,64));
+	Output_Move = mBoard->newBlob(make_shape(BatchSize, 2,64));
+	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
+	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
 
 	mBoard->setOptimizer(new AdamOptimizer(0.05));
 
@@ -45,16 +47,21 @@ void Net::init_net()
 	mBoard->addNeuron(new LeakyReLUNeuron(FCKing, ActKing, 0.05));
 	mBoard->addNeuron(new FullyConnectedNeuron(ActKing, FullFC1, 1));
 	mBoard->addNeuron(new LeakyReLUNeuron(FullFC1, FullFCAct1, 0.05));
-	mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, FullFC2, 1));
-	mBoard->addNeuron(new TanhNeuron(FullFC2, Output));
+	mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputMoveFC, 1));
+	mBoard->addNeuron(new TanhNeuron(OutputMoveFC, Output_Move));
+	mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputEvalFC, 1));
+	mBoard->addNeuron(new TanhNeuron(OutputEvalFC, Output_Eval));
 
-	mBoard->setErrorFunction(new MeanSquaredError(Input, Output, nullptr));
+	mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Move, nullptr));
+	mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Eval, nullptr));
 }
 
-void Net::train(Tensor inputs, Tensor outputs)
+void Net::train(Tensor inputs, Tensor output_move, Tensor output_eval)
 {
-	//mBoard->train(inputs, outputs, 1, BatchSize);
-	mBoard->backprop(inputs, outputs);
+	std::vector<Tensor*> v;
+	v.push_back(&output_move);
+	v.push_back(&output_eval);
+	mBoard->backprop(inputs, v);
 	mBoard->mOptimizer->optimize();
 }
 

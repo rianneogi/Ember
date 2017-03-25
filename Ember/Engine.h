@@ -12,7 +12,7 @@ public:
 
 	PositionNN pos;
 	Tensor move;
-	int depth;
+	int eval;
 };
 
 class Engine
@@ -26,6 +26,7 @@ public:
 	Net* mNet;
 	Tensor InputTensor;
 	Tensor OutputTensor;
+	Tensor OutputEvalTensor;
 	uint64_t BatchSize;
 
 	Engine();
@@ -38,6 +39,8 @@ public:
 
 	int LeafEval();
 	int QuiescenceSearch();
+
+	void learn_eval(int num_games);
 
 	uint64_t perft(int depth);
 };

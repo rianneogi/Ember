@@ -1,11 +1,13 @@
 #include "Engine.h"
 
-const int DATABASE_SIZE = 1000;
+const int DATABASE_SIZE = 2500;
 const int CONST_INF = 10000;
 
 const int BATCH_SIZE = 64;
 
-Engine::Engine() : BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 14, 8, 8)), OutputTensor(make_shape(BATCH_SIZE, 2, 64))
+Engine::Engine()
+	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 14, 8, 8)), 
+	OutputTensor(make_shape(BATCH_SIZE, 2, 64)), OutputEvalTensor(make_shape(BATCH_SIZE, 1))
 {
 	Database = new Data[DATABASE_SIZE];
 	DBCounter = 0;
@@ -173,7 +175,7 @@ int Engine::Negamax(int depth)
 	{
 		Data* d = &Database[DBCounter];
 		d->pos = PositionNN(CurrentPos);
-		d->depth = depth;
+		d->eval = leafeval;
 		moveToTensor(bestmove, &d->move);
 
 		DBCounter++;
@@ -192,8 +194,9 @@ int Engine::Negamax(int depth)
 			size_t id = rand() % DBSize;
 			memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.mData.mData, sizeof(Float) * 14 * 8 * 8);
 			memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
+			OutputEvalTensor(i) = Database[id].eval;
 		}
-		mNet->train(InputTensor, OutputTensor);
+		mNet->train(InputTensor, OutputTensor, OutputEvalTensor);
 	}
 
 	return bestscore;
@@ -216,6 +219,60 @@ int Engine::LeafEval()
 		ret = -ret;
 	}
 	return ret;
+}
+
+void Engine::learn_eval(int num_games)
+{
+	uint64_t c = 0;
+	for (int i = 0; i < num_games; i++)
+	{
+		printf("Game: %d\n", i + 1);
+		CurrentPos.setStartPos();
+		while (true)
+		{
+			std::vector<Move> moves;
+			moves.reserve(128);
+			CurrentPos.generateMoves(moves);
+
+			Move m = moves[rand() % moves.size()];
+
+			Data* d = &Database[DBCounter];
+			d->pos = PositionNN(CurrentPos);
+			d->eval = LeafEval();
+			moveToTensor(m, &d->move);
+
+			DBCounter++;
+			if (DBCounter == DATABASE_SIZE)
+			{
+				DBCounter = 0;
+			}
+
+			if (DBSize < DATABASE_SIZE)
+			{
+				DBSize++;
+			}
+
+			if (c % 64 == 0)
+			{
+				for (uint64_t i = 0; i < BatchSize; i++)
+				{
+					size_t id = rand() % DBSize;
+					memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.mData.mData, sizeof(Float) * 14 * 8 * 8);
+					memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
+					OutputEvalTensor(i) = Database[id].eval;
+				}
+				mNet->train(InputTensor, OutputTensor, OutputEvalTensor);
+				//printf("trained %d\n", CurrentPos.movelist.size());
+			}
+
+			CurrentPos.makeMove(m);
+			if (CurrentPos.getGameStatus() != STATUS_NOTOVER || CurrentPos.movelist.size() > 100)
+			{
+				break;
+			}
+			c++;
+		}
+	}
 }
 
 uint64_t Engine::perft(int depth)

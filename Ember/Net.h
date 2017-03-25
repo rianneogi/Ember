@@ -13,8 +13,10 @@ public:
 	Blob* ActKing;
 	Blob* FullFC1;
 	Blob* FullFCAct1;
-	Blob* FullFC2;
-	Blob* Output;
+	Blob* OutputMoveFC;
+	Blob* OutputEvalFC;
+	Blob* Output_Move;
+	Blob* Output_Eval;
 
 	uint64_t BatchSize;
 
@@ -24,7 +26,7 @@ public:
 
 	void init_net();
 
-	void train(Tensor inputs, Tensor outputs);
+	void train(Tensor inputs, Tensor output_move, Tensor output_eval);
 
 	void save(std::string filename);
 	void load(std::string filename);

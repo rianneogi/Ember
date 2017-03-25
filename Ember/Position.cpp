@@ -13,6 +13,9 @@ Position::~Position()
 
 void Position::setStartPos()
 {
+	movelist.clear();
+	hashlist.clear();
+
 	Pieces[COLOR_WHITE][PIECE_PAWN] = 0x000000000000ff00;
 	Pieces[COLOR_BLACK][PIECE_PAWN] = 0x00ff000000000000;
 	Pieces[COLOR_WHITE][PIECE_ROOK] = 0x0000000000000081;

@@ -196,7 +196,7 @@ int Engine::Negamax(int depth)
 			memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 			OutputEvalTensor(i) = Database[id].eval;
 		}
-		mNet->train(InputTensor, OutputTensor, OutputEvalTensor);
+		mNet->train(InputTensor, nullptr, &OutputEvalTensor);
 	}
 
 	return bestscore;
@@ -259,10 +259,10 @@ void Engine::learn_eval(int num_games)
 					size_t id = rand() % DBSize;
 					memcpy(&InputTensor(i*8*8*14), Database[id].pos.mTensor.mData, sizeof(Float) * 8 * 8 * 14);
 					memcpy(&OutputTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
-					OutputEvalTensor(i) = Database[id].eval;
+					OutputEvalTensor(i) = Database[id].eval/100.0;
 				}
-				CurrentPos.display(0);
-				//printf("Error: %f\n", mNet->train(InputTensor, OutputTensor, OutputEvalTensor));
+				//CurrentPos.display(0);
+				printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 				//printf("trained %d\n", CurrentPos.movelist.size());
 			}
 

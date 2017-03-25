@@ -7,6 +7,7 @@
 #include <Neurons\TanhNeuron.h>
 #include <Neurons\LeakyReLUNeuron.h>
 #include <ErrorFunctions\MeanSquaredError.h>
+#include <Optimizers\StandardOptimizer.h>
 #include <Optimizers\AdamOptimizer.h>
 
 Net::Net() : BatchSize(20)
@@ -40,7 +41,7 @@ void Net::init_net()
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
 	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
 
-	mBoard->setOptimizer(new AdamOptimizer(0.05));
+	mBoard->setOptimizer(new AdamOptimizer(0.005));
 
 	mBoard->addNeuron(new Im2ColNeuron(Input, ConvKing, 3, 3));
 	mBoard->addNeuron(new ConvNeuron(ConvKing, FCKing, 1));
@@ -56,11 +57,11 @@ void Net::init_net()
 	mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Eval, nullptr));
 }
 
-Float Net::train(Tensor inputs, Tensor output_move, Tensor output_eval)
+Float Net::train(Tensor inputs, Tensor* output_move, Tensor* output_eval)
 {
 	std::vector<Tensor*> v;
-	v.push_back(&output_move);
-	v.push_back(&output_eval);
+	v.push_back(output_move);
+	v.push_back(output_eval);
 	Float error = mBoard->backprop(inputs, v);
 	mBoard->mOptimizer->optimize();
 	return error;

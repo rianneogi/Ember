@@ -26,7 +26,7 @@ public:
 
 	void init_net();
 
-	Float train(Tensor inputs, Tensor output_move, Tensor output_eval);
+	Float train(Tensor inputs, Tensor* output_move, Tensor* output_eval);
 
 	void save(std::string filename);
 	void load(std::string filename);

@@ -6,7 +6,7 @@ const int CONST_INF = 10000;
 const int BATCH_SIZE = 64;
 
 Engine::Engine()
-	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 14, 8, 8)), 
+	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 8, 8, 14)), 
 	OutputTensor(make_shape(BATCH_SIZE, 2, 64)), OutputEvalTensor(make_shape(BATCH_SIZE, 1))
 {
 	Database = new Data[DATABASE_SIZE];
@@ -174,7 +174,7 @@ int Engine::Negamax(int depth)
 	if (bestscore != leafeval && depth>=4)
 	{
 		Data* d = &Database[DBCounter];
-		d->pos = PositionNN(CurrentPos);
+		d->pos.copyFromPosition(CurrentPos);
 		d->eval = leafeval;
 		moveToTensor(bestmove, &d->move);
 
@@ -192,7 +192,7 @@ int Engine::Negamax(int depth)
 		for (uint64_t i = 0; i < BatchSize; i++)
 		{
 			size_t id = rand() % DBSize;
-			memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.mData.mData, sizeof(Float) * 14 * 8 * 8);
+			memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.mTensor.mData, sizeof(Float) * 14 * 8 * 8);
 			memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 			OutputEvalTensor(i) = Database[id].eval;
 		}
@@ -237,7 +237,7 @@ void Engine::learn_eval(int num_games)
 			Move m = moves[rand() % moves.size()];
 
 			Data* d = &Database[DBCounter];
-			d->pos = PositionNN(CurrentPos);
+			d->pos.copyFromPosition(CurrentPos);
 			d->eval = LeafEval();
 			moveToTensor(m, &d->move);
 
@@ -257,11 +257,12 @@ void Engine::learn_eval(int num_games)
 				for (uint64_t i = 0; i < BatchSize; i++)
 				{
 					size_t id = rand() % DBSize;
-					memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.mData.mData, sizeof(Float) * 14 * 8 * 8);
-					memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
+					memcpy(&InputTensor(i*8*8*14), Database[id].pos.mTensor.mData, sizeof(Float) * 8 * 8 * 14);
+					memcpy(&OutputTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
 					OutputEvalTensor(i) = Database[id].eval;
 				}
-				printf("Error: %f\n", mNet->train(InputTensor, OutputTensor, OutputEvalTensor));
+				CurrentPos.display(0);
+				//printf("Error: %f\n", mNet->train(InputTensor, OutputTensor, OutputEvalTensor));
 				//printf("trained %d\n", CurrentPos.movelist.size());
 			}
 

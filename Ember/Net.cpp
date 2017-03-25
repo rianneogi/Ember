@@ -28,7 +28,7 @@ Net::~Net()
 void Net::init_net()
 {
 	mBoard = new Board();
-	Input = mBoard->newBlob(make_shape(BatchSize, 14, 8, 8));
+	Input = mBoard->newBlob(make_shape(BatchSize, 8, 8, 14));
 	ConvKing = mBoard->newBlob(make_shape(BatchSize*6*6, 14*9));
 	FCKing = mBoard->newBlob(make_shape(BatchSize*6*6, 14*9));
 	ActKing = mBoard->newBlob(make_shape(BatchSize, 14*9*6*6)); //resize in activation neuron

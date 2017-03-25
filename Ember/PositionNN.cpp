@@ -1,24 +1,24 @@
 #include "PositionNN.h"
 
-PositionNN::PositionNN() : mData(make_shape(14, 8, 8))
+PositionNN::PositionNN() : mTensor(make_shape(8, 8, 14))
 {
-	mData.setzero();
 }
 
-PositionNN::PositionNN(const Position& pos) : PositionNN()
+PositionNN::PositionNN(const Position& pos) : mTensor(make_shape(8, 8, 14))
 {
 	copyFromPosition(pos);
 }
 
 PositionNN::~PositionNN()
 {
-	mData.freemem();
+	mTensor.freemem();
 }
 
 void PositionNN::copyFromPosition(const Position& pos)
 {
+	mTensor.setzero();
 	for (int i = 0; i < 64; i++)
 	{
-		mData(pos.Squares[i], i / 8, i % 8) = 1;
+		mTensor(i / 8, i % 8, pos.Squares[i]) = 1.0;
 	}
 }

@@ -6,7 +6,7 @@
 class PositionNN
 {
 public:
-	Tensor mData;
+	Tensor mTensor;
 
 	PositionNN();
 	PositionNN(const Position& pos);

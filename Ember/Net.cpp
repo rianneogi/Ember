@@ -58,6 +58,34 @@ void Net::train(Tensor inputs, Tensor outputs)
 	mBoard->mOptimizer->optimize();
 }
 
+void Net::save(std::string filename)
+{
+	std::fstream file(filename, std::ios::out | std::ios::binary);
+	for (size_t i = 0; i < mBoard->mOptimizer->Variables.size(); i++)
+	{
+		for (uint64_t j = 0; j < mBoard->mOptimizer->Variables[i]->Data.mSize; j++)
+		{
+			file << mBoard->mOptimizer->Variables[i]->Data(j);
+		}
+		//file << "\n";
+	}
+	file.close();
+}
+
+void Net::load(std::string filename)
+{
+	std::fstream file(filename, std::ios::in | std::ios::binary);
+	for (size_t i = 0; i < mBoard->mOptimizer->Variables.size(); i++)
+	{
+		for (uint64_t j = 0; j < mBoard->mOptimizer->Variables[i]->Data.mSize; j++)
+		{
+			file >> mBoard->mOptimizer->Variables[i]->Data(j);
+		}
+		//file << "\n";
+	}
+	file.close();
+}
+
 void moveToTensor(Move m, Tensor* t)
 {
 	//Tensor t(make_shape(2, 64));

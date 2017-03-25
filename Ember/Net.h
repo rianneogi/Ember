@@ -25,6 +25,9 @@ public:
 	void init_net();
 
 	void train(Tensor inputs, Tensor outputs);
+
+	void save(std::string filename);
+	void load(std::string filename);
 };
 
 void moveToTensor(Move m, Tensor* t);

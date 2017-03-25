@@ -50,19 +50,20 @@ void Net::init_net()
 	mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputMoveFC, 1));
 	mBoard->addNeuron(new TanhNeuron(OutputMoveFC, Output_Move));
 	mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputEvalFC, 1));
-	mBoard->addNeuron(new TanhNeuron(OutputEvalFC, Output_Eval));
+	mBoard->addNeuron(new LeakyReLUNeuron(OutputEvalFC, Output_Eval, 1));
 
 	mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Move, nullptr));
 	mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Eval, nullptr));
 }
 
-void Net::train(Tensor inputs, Tensor output_move, Tensor output_eval)
+Float Net::train(Tensor inputs, Tensor output_move, Tensor output_eval)
 {
 	std::vector<Tensor*> v;
 	v.push_back(&output_move);
 	v.push_back(&output_eval);
-	mBoard->backprop(inputs, v);
+	Float error = mBoard->backprop(inputs, v);
 	mBoard->mOptimizer->optimize();
+	return error;
 }
 
 void Net::save(std::string filename)

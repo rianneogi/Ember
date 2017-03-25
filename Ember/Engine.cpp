@@ -261,7 +261,7 @@ void Engine::learn_eval(int num_games)
 					memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 					OutputEvalTensor(i) = Database[id].eval;
 				}
-				mNet->train(InputTensor, OutputTensor, OutputEvalTensor);
+				printf("Error: %f\n", mNet->train(InputTensor, OutputTensor, OutputEvalTensor));
 				//printf("trained %d\n", CurrentPos.movelist.size());
 			}
 

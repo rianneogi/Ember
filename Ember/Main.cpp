@@ -16,11 +16,14 @@ int main()
 	e.mNet->load("Data/variables.bin");
 	printf("Starting game\n");
 
-	/*e.CurrentPos.loadFromFEN("8/6k1/p2r1p1p/1p1p2P1/3Rb3/P1P1N1P1/1P2K3/8 w - - 0 0");
-	e.CurrentPos.display(0);
-	Move m = e.go();
-	printf("%s\n", m.toString().c_str());*/
-	e.learn_eval(256);
+	//e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/2PPQB2/2P2N2/P4PPP/1R2K2R b K - 2 0");
+	//e.CurrentPos.display(0);
+	//PositionNN pos(e.CurrentPos);
+	//e.mNet->mBoard->forward(pos.mData);
+	//printf("%f\n", e.mNet->OutputEvalFC->Data(0));
+	//Move m = e.go();
+	//printf("%s\n", m.toString().c_str());
+	e.learn_eval(10000);
 	
 	printf("Saving weights\n");
 	e.mNet->save("Data/variables.bin");

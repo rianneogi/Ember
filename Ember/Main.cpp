@@ -4,14 +4,41 @@
 
 int main()
 {
+	srand(time(0));
+
 	TTinit();
 	attacksinit();
 	magicinit();
 	datainit();
 
 	Engine e;
-	e.Negamax(4);
-	printf("done\n");
+	printf("Loading weights\n");
+	//e.mNet->load("Data/variables.bin");
+	printf("Starting game\n");
+
+	/*e.CurrentPos.loadFromFEN("8/6k1/p2r1p1p/1p1p2P1/3Rb3/P1P1N1P1/1P2K3/8 w - - 0 0");
+	e.CurrentPos.display(0);
+	Move m = e.go();
+	printf("%s\n", m.toString().c_str());*/
+	while (true)
+	{
+		Move m = e.go();
+		
+		e.CurrentPos.makeMove(m);
+
+		printf("Made move: %s\n", m.toString().c_str());
+		printf("\n");
+		e.CurrentPos.display(0);
+		printf("\n");
+		if (e.CurrentPos.getGameStatus() != STATUS_NOTOVER)
+		{
+			break;
+		}
+	}
+	printf("Game over\n");
+	printf("Saving weights\n");
+	e.mNet->save("Data/variables.bin");
+	printf("Done\n");
 
 	UCI uci;
 	uci.run();

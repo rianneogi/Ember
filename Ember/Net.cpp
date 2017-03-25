@@ -60,30 +60,12 @@ void Net::train(Tensor inputs, Tensor outputs)
 
 void Net::save(std::string filename)
 {
-	std::fstream file(filename, std::ios::out | std::ios::binary);
-	for (size_t i = 0; i < mBoard->mOptimizer->Variables.size(); i++)
-	{
-		for (uint64_t j = 0; j < mBoard->mOptimizer->Variables[i]->Data.mSize; j++)
-		{
-			file << mBoard->mOptimizer->Variables[i]->Data(j);
-		}
-		//file << "\n";
-	}
-	file.close();
+	mBoard->save_variables(filename);
 }
 
 void Net::load(std::string filename)
 {
-	std::fstream file(filename, std::ios::in | std::ios::binary);
-	for (size_t i = 0; i < mBoard->mOptimizer->Variables.size(); i++)
-	{
-		for (uint64_t j = 0; j < mBoard->mOptimizer->Variables[i]->Data.mSize; j++)
-		{
-			file >> mBoard->mOptimizer->Variables[i]->Data(j);
-		}
-		//file << "\n";
-	}
-	file.close();
+	mBoard->load_variables(filename);
 }
 
 void moveToTensor(Move m, Tensor* t)

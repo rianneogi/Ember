@@ -31,7 +31,8 @@ public:
 	Engine();
 	~Engine();
 
-	void go();
+	Move go_alphabeta();
+	Move go_negamax();
 	int AlphaBeta(int alpha, int beta, int depth);
 	int Negamax(int depth);
 

@@ -21,8 +21,52 @@ Engine::~Engine()
 	mNet = NULL;
 }
 
-void Engine::go()
+Move Engine::go_alphabeta()
 {
+	std::vector<Move> moves;
+	moves.reserve(128);
+	CurrentPos.generateMoves(moves);
+	int bestscore = -CONST_INF;
+	Move bestmove = createNullMove(CurrentPos.EPSquare);
+	for (size_t i = 0; i < moves.size(); i++)
+	{
+		//printf("Move: %s\n", moves[i].toString());
+
+		CurrentPos.makeMove(moves[i]);
+		int score = -AlphaBeta(-CONST_INF, CONST_INF, 4);
+		CurrentPos.unmakeMove(moves[i]);
+
+		if (score > bestscore)
+		{
+			bestscore = score;
+			bestmove = moves[i];
+		}
+	}
+	return bestmove;
+}
+
+Move Engine::go_negamax()
+{
+	std::vector<Move> moves;
+	moves.reserve(128);
+	CurrentPos.generateMoves(moves);
+	int bestscore = -CONST_INF;
+	Move bestmove = createNullMove(CurrentPos.EPSquare);
+	for (size_t i = 0; i < moves.size(); i++)
+	{
+		//printf("Move: %s\n", moves[i].toString());
+
+		CurrentPos.makeMove(moves[i]);
+		int score = -Negamax(4);
+		CurrentPos.unmakeMove(moves[i]);
+
+		if (score > bestscore)
+		{
+			bestscore = score;
+			bestmove = moves[i];
+		}
+	}
+	return bestmove;
 }
 
 int Engine::AlphaBeta(int alpha, int beta, int depth)
@@ -42,6 +86,23 @@ int Engine::AlphaBeta(int alpha, int beta, int depth)
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
+
+	if (moves.size() == 0)
+	{
+		int status = CurrentPos.getGameStatus();
+		if (status != STATUS_NOTOVER)
+		{
+			if (status == STATUS_STALEMATE || status == STATUS_INSUFFICIENTMAT || status == STATUS_3FOLDREP)
+			{
+				return 0;
+			}
+			else if (status == STATUS_WHITEMATED || status == STATUS_BLACKMATED)
+			{
+				return -CONST_INF;
+			}
+		}
+	}
+
 	int bestscore = -CONST_INF;
 	for (int i = 0; i < moves.size(); i++)
 	{
@@ -76,15 +137,27 @@ int Engine::Negamax(int depth)
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
+
+	if (moves.size() == 0)
+	{
+		int status = CurrentPos.getGameStatus();
+		if (status != STATUS_NOTOVER)
+		{
+			if (status == STATUS_STALEMATE || status == STATUS_INSUFFICIENTMAT || status == STATUS_3FOLDREP)
+			{
+				return 0;
+			}
+			else if (status == STATUS_WHITEMATED || status == STATUS_BLACKMATED)
+			{
+				return -CONST_INF;
+			}
+		}
+	}
+
 	int bestscore = -CONST_INF;
 	Move bestmove;
-	for (int i = 0; i < moves.size(); i++)
+	for (size_t i = 0; i < moves.size(); i++)
 	{
-		if (depth == 4)
-		{
-			printf("Move: %s\n", moves[i].toString());
-		}
-
 		CurrentPos.makeMove(moves[i]);
 		int score = -Negamax(depth - 1);
 		CurrentPos.unmakeMove(moves[i]);
@@ -96,7 +169,7 @@ int Engine::Negamax(int depth)
 		}
 	}
 
-	if (bestscore != leafeval)
+	if (bestscore != leafeval && depth>=4)
 	{
 		Data* d = &Database[DBCounter];
 		d->pos = PositionNN(CurrentPos);

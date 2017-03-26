@@ -29,13 +29,13 @@ Net::~Net()
 void Net::init_net()
 {
 	mBoard = new Board();
-	Input = mBoard->newBlob(make_shape(BatchSize, 8, 8, 14));
+	Input = mBoard->newBlob(make_shape(BatchSize*8*8, 14));
 	ConvKing = mBoard->newBlob(make_shape(BatchSize*6*6, 14*9));
-	FCKing = mBoard->newBlob(make_shape(BatchSize*6*6, 14*9));
-	ActKing = mBoard->newBlob(make_shape(BatchSize, 14*9*6*6)); //resize in activation neuron
+	FCKing = mBoard->newBlob(make_shape(BatchSize*8*8, 1));
+	ActKing = mBoard->newBlob(make_shape(BatchSize, 4*8*8)); //resize in activation neuron
 
-	FullFC1 = mBoard->newBlob(make_shape(BatchSize, 100));
-	FullFCAct1 = mBoard->newBlob(make_shape(BatchSize, 100));
+	FullFC1 = mBoard->newBlob(make_shape(BatchSize, 10));
+	FullFCAct1 = mBoard->newBlob(make_shape(BatchSize, 10));
 	OutputMoveFC = mBoard->newBlob(make_shape(BatchSize, 2,64));
 	Output_Move = mBoard->newBlob(make_shape(BatchSize, 2,64));
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
@@ -43,14 +43,16 @@ void Net::init_net()
 
 	mBoard->setOptimizer(new AdamOptimizer(0.005));
 
-	mBoard->addNeuron(new Im2ColNeuron(Input, ConvKing, 3, 3));
-	mBoard->addNeuron(new ConvNeuron(ConvKing, FCKing, 1));
+	//mBoard->addNeuron(new Im2ColNeuron(Input, ConvKing, 3, 3));
+	mBoard->addNeuron(new ConvNeuron(Input, FCKing, 1));
 	mBoard->addNeuron(new LeakyReLUNeuron(FCKing, ActKing, 0.05));
-	mBoard->addNeuron(new FullyConnectedNeuron(ActKing, FullFC1, 1));
-	mBoard->addNeuron(new LeakyReLUNeuron(FullFC1, FullFCAct1, 0.05));
-	mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputMoveFC, 1));
-	mBoard->addNeuron(new TanhNeuron(OutputMoveFC, Output_Move));
-	mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputEvalFC, 1));
+	//mBoard->addNeuron(new FullyConnectedNeuron(ActKing, FullFC1, 1));
+	//mBoard->addNeuron(new LeakyReLUNeuron(FullFC1, FullFCAct1, 0.05));
+	//mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputMoveFC, 1));
+	//mBoard->addNeuron(new TanhNeuron(OutputMoveFC, Output_Move));
+	auto n = new FullyConnectedNeuron(ActKing, OutputEvalFC, 1);
+	n->Weights->Data.setconstant(1);
+	mBoard->addNeuron(n);
 	mBoard->addNeuron(new LeakyReLUNeuron(OutputEvalFC, Output_Eval, 1));
 
 	mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Move, nullptr));

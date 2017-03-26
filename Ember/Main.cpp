@@ -24,7 +24,7 @@ int main()
 	//Move m = e.go();
 	//printf("%s\n", m.toString().c_str());
 	
-	e.learn_eval(10000);
+	e.learn_eval(1000);
 	
 	printf("Saving weights\n");
 	e.mNet->save("Data/variables.bin");

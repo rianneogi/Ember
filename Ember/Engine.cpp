@@ -1,6 +1,6 @@
 #include "Engine.h"
 
-const int DATABASE_SIZE = 5000;
+const int DATABASE_SIZE = 6400;
 const int CONST_INF = 10000;
 
 const int BATCH_SIZE = 64;
@@ -208,10 +208,10 @@ int Engine::LeafEval()
 	for (int i = 0; i < 2; i++)
 	{
 		score[i] += 100 * popcnt(CurrentPos.Pieces[i][PIECE_PAWN]);
-		score[i] += 320 * popcnt(CurrentPos.Pieces[i][PIECE_KNIGHT]);
-		score[i] += 350 * popcnt(CurrentPos.Pieces[i][PIECE_BISHOP]);
+		score[i] += 300 * popcnt(CurrentPos.Pieces[i][PIECE_KNIGHT]);
+		score[i] += 300 * popcnt(CurrentPos.Pieces[i][PIECE_BISHOP]);
 		score[i] += 500 * popcnt(CurrentPos.Pieces[i][PIECE_ROOK]);
-		score[i] += 950 * popcnt(CurrentPos.Pieces[i][PIECE_QUEEN]);
+		score[i] += 900 * popcnt(CurrentPos.Pieces[i][PIECE_QUEEN]);
 	}
 	int ret = score[0] - score[1];
 	if (CurrentPos.Turn == COLOR_BLACK)
@@ -236,12 +236,13 @@ void Engine::learn_eval(int num_games)
 
 			Move m = moves[rand() % moves.size()];
 
+			int leaf = LeafEval();
+
 			int r = rand() % 10;
 			if (r == 0)
 			{
 				Data* d = &Database[DBCounter];
 				d->pos.copyFromPosition(CurrentPos);
-				int leaf = LeafEval();
 				if (CurrentPos.Turn == COLOR_BLACK)
 				{
 					leaf = -leaf;
@@ -261,22 +262,34 @@ void Engine::learn_eval(int num_games)
 				}
 			}
 
-			if (DBSize == DATABASE_SIZE)
+			if (DBSize == DATABASE_SIZE && c%64==0)
 			{
-				for (int batch = 0; batch < 1; batch++)
+				//printf("EPOCH\n");
+				for (int epoch = 0; epoch < 100; epoch++)
 				{
-					for (uint64_t i = 0; i < BatchSize; i++)
+					Float error = 0;
+					for (int batch = 0; batch < 100; batch++)
 					{
-						size_t id = rand() % DBSize;
-						memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
-						memcpy(&OutputTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
-						OutputEvalTensor(i) = Database[id].eval / 100.0;
+						for (uint64_t i = 0; i < BatchSize; i++)
+						{
+							//size_t id = rand() % DBSize;
+							size_t id = batch*BatchSize + i;
+							memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
+							//memcpy(&OutputTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
+							OutputEvalTensor(i) = Database[id].eval / 100.0;
+						}
+						for (int run = 0; run < 1; run++)
+						{
+							error += mNet->train(InputTensor, nullptr, &OutputEvalTensor);
+							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
+						}
 					}
-					for (int run = 0; run < 1; run++)
+					if (epoch == 9)
 					{
-						printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
+						printf("Final error: %f, avg: %f\n", error, error/(64*100));
 					}
 				}
+				
 			}
 
 			CurrentPos.makeMove(m);

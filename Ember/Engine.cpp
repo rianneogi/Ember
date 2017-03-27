@@ -23,6 +23,16 @@ Engine::~Engine()
 	mNet = NULL;
 }
 
+Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
+{
+	GoReturn go = go_alphabeta();
+	if (print)
+	{
+		std::cout << "info score cp " << go.eval << std::endl;
+	}
+	return go_alphabeta().m;
+}
+
 GoReturn Engine::go_alphabeta()
 {
 	std::vector<Move> moves;

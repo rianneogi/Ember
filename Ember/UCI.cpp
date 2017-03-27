@@ -1,5 +1,9 @@
 #include "UCI.h"
 
+std::string ENGINENAME = "Ember";
+int ENGINEVERSION = 1;
+std::string ENGINEAUTHOR = "Rian Neogi";
+
 UCI::UCI()
 {
 }
@@ -268,5 +272,239 @@ void UCI::info()
 	if (s == "rep")
 	{
 		cout << Ember.CurrentPos.isRepetition() << endl;
+	}
+}
+
+void UCI::run_uci()
+{
+	using std::cout;
+	using std::cin;
+	using std::endl;
+
+	cout << "id name " << ENGINENAME << " " << ENGINEVERSION << endl;
+	cout << "id author " << ENGINEAUTHOR << endl;
+	cout << "uciok" << endl;
+	std::string str = "";
+	//char cp[5000];
+	cout.setf(std::ios::unitbuf);// Make sure that the outputs are sent straight away to the GUI
+	while (true)
+	{
+		str = "";
+		/*fgets(cp,sizeof(cp),stdin);
+		for(int i = 0;cp[i]!='\0' && cp[i]!='\n';i++)
+		{
+		str += cp[i];
+		}*/
+		getline(cin, str);
+		std::string s = getStringToken(str, ' ', 1);
+		if (s == "isready" || str == "isready")
+		{
+			cout << "readyok" << endl;
+		}
+		else if (s == "quit")
+		{
+			break;
+		}
+		else if (s == "uci")
+		{
+			cout << "id name " << ENGINENAME << " " << ENGINEVERSION << endl;
+			cout << "id author " << ENGINEAUTHOR << endl;
+			cout << "uciok" << endl;
+		}
+		else if (s == "go")
+		{
+			int wtime = 0;
+			int btime = 0;
+			int winc = 0;
+			int binc = 0;
+			int mode = MODE_DEFAULT;
+			for (int i = 2;; i++)
+			{
+				s = getStringToken(str, ' ', i);
+				if (s == "infinite")
+				{
+					wtime = -1;
+					mode = MODE_MOVETIME;
+				}
+				if (s == "movetime")
+				{
+					wtime = atoi(getStringToken(str, ' ', i + 1).c_str());
+					mode = MODE_MOVETIME;
+					i++;
+				}
+				if (s == "wtime")
+				{
+					wtime = atoi(getStringToken(str, ' ', i + 1).c_str());
+					i++;
+				}
+				if (s == "btime")
+				{
+					btime = atoi(getStringToken(str, ' ', i + 1).c_str());
+					i++;
+				}
+				if (s == "winc")
+				{
+					winc = atoi(getStringToken(str, ' ', i + 1).c_str());
+					i++;
+				}
+				if (s == "binc")
+				{
+					binc = atoi(getStringToken(str, ' ', i + 1).c_str());
+					i++;
+				}
+				if (s == "")
+					break;
+			}
+
+			if (wtime == 0)
+				wtime = 1000;
+			if (btime == 0)
+				btime = 1000;
+
+			Move m = Ember.go(mode, wtime, btime, winc, binc, true);
+			cout << "bestmove " << m.toString() << endl;
+			//e1.pos.forceMove(m);
+		}
+		else if (s == "position")
+		{
+			s = getStringToken(str, ' ', 2);
+			int tokennumber = 3;
+			if (s == "startpos")
+			{
+				//e1.pos = Position();
+				Ember.CurrentPos.setStartPos();
+			}
+			else if (s == "fen")
+			{
+				//cout << "info string fen enter" << endl;
+				Ember.CurrentPos.loadFromFEN(str.substr(getStringTokenPosition(str, ' ', 3)));
+				tokennumber = 9;
+			}
+
+			s = getStringToken(str, ' ', tokennumber);
+			if (s == "moves")
+			{
+				int i = tokennumber + 1;
+				s = getStringToken(str, ' ', i);
+
+				while (s != "")
+				{
+					std::vector<Move> v;
+					v.reserve(128);
+					Ember.CurrentPos.generateMoves(v);
+					Move m = String2Move(s);
+					int flag = 0;
+					for (int j = 0; j<v.size(); j++)
+					{
+						if (v.at(j).getFrom() == m.getFrom() && v.at(j).getTo() == m.getTo() &&
+							(
+							(m.getSpecial() == v.at(j).getSpecial() &&
+								(
+									m.getSpecial() == PIECE_BISHOP || m.getSpecial() == PIECE_KNIGHT ||
+									m.getSpecial() == PIECE_QUEEN || m.getSpecial() == PIECE_ROOK
+									)
+								)
+								|| m.getSpecial() == PIECE_PAWN || m.getSpecial() == PIECE_KING || m.getSpecial() == PIECE_NONE
+								)
+							)
+						{
+							Ember.CurrentPos.makeMove(v.at(j));
+							flag = 1;
+							//cout << v.at(j).toString() << endl;
+						}
+					}
+					//cout << s << endl;
+					//cout << m.getFrom() << " " << m.getTo() << endl;
+					if (flag == 0)
+					{
+						cout << "info string ERROR: Legal move not found: " 
+							<< m.toString() << ", move count: " << Ember.CurrentPos.movelist.size() << endl;
+					}
+					i++;
+					s = getStringToken(str, ' ', i);
+				}
+			}
+		}
+		else if (s == "move" || s == "makemove" || s == "playmove")
+		{
+			makeMove(getStringToken(str, ' ', 2));
+		}
+		else if (s == "display")
+		{
+			Ember.CurrentPos.display(0);
+		}
+		/*else if (s == "trace")
+		{
+			cout << e1.LeafEval<true>() << endl;
+		}*/
+		else if (s == "eval")
+		{
+			cout << Ember.LeafEval() << endl;
+		}
+		/*else if (s == "qsearch")
+		{
+			cout << e1.QuiescenceSearch(CONS_NEGINF, CONS_INF) << endl;
+		}*/
+		else if (s == "info" || s == "information")
+		{
+			info();
+		}
+		else if (s == "ping")
+		{
+			s = getStringToken(str, ' ', 2);
+			cout << "pong " << atoi(s.c_str()) << endl;
+		}
+		else if (s == "disp" || s == "display")
+		{
+			display(0);
+		}
+		else if (s == "dispflip" || s == "displayflip" || s == "displayflipped")
+		{
+			display(1);
+		}
+		else if (s == "unmakemove" || s == "unmake" || s == "unmove" || s == "undo")
+		{
+			unmakeMove();
+		}
+		else if (s == "perft")
+		{
+			Clock t;
+			t.Start();
+			s = getStringToken(str, ' ', 2);
+			int pdepth = atoi(s.c_str());
+			uint64_t perft = Ember.perft(pdepth);
+			t.Stop();
+			cout << "Count: " << perft << ", Time: " << t.ElapsedMilliseconds() << ", NPS: " << ((perft * 1000) / t.ElapsedMilliseconds()) << endl;
+		}
+		/*else if (s == "movesort")
+		{
+			std::vector<Move> vec;
+			Ember.CurrentPos.generateMoves(vec);
+			for (int i = 0; i < vec.size(); i++)
+			{
+				Move bm = e1.getHighestScoringMove(vec, i);
+				cout << bm.toString() << " " << e1.getMoveScore(bm) << endl;
+			}
+		}
+		else if (s == "pv")
+		{
+			cout << "ply = " << e1.ply << endl;
+			cout << "pv size: " << e1.PrincipalVariation.size() << endl;
+			for (int i = e1.PrincipalVariation.size() - 1; i >= 0; i--)
+			{
+				cout << e1.PrincipalVariation.at(i).toString() << endl;
+			}
+		}
+		else if (s == "probe")
+		{
+			cout << Table.Probe(e1.pos.TTKey, 0, CONS_NEGINF, CONS_INF) << endl;
+			cout << Table.getBestMove(e1.pos.TTKey).toString() << endl;
+		}*/
+		else if (s == "exit" || s == "quit")
+		{
+			//exit();
+			break;
+		}
+		//fflush(stdin);
 	}
 }

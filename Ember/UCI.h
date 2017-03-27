@@ -11,6 +11,7 @@ public:
 	~UCI();
 
 	void run();
+	void run_uci();
 	void display(int flip);
 	void makeMove(std::string s);
 	void unmakeMove();

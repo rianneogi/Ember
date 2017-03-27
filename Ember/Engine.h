@@ -4,6 +4,8 @@
 
 extern const int CONST_INF;
 
+enum TimeMode { MODE_DEFAULT, MODE_MOVETIME, MODE_INF, MODE_DEPTH };
+
 struct Data
 {
 public:
@@ -39,6 +41,8 @@ public:
 
 	Engine();
 	~Engine();
+
+	Move go(int mode, int wtime, int btime, int winc, int binc, bool print);
 
 	GoReturn go_alphabeta();
 	Move go_negamax();

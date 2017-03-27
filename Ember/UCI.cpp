@@ -445,6 +445,10 @@ void UCI::run_uci()
 		{
 			cout << Ember.LeafEval() << endl;
 		}
+		else if (s == "evalnn")
+		{
+			cout << Ember.LeafEval_NN() << endl;
+		}
 		/*else if (s == "qsearch")
 		{
 			cout << e1.QuiescenceSearch(CONS_NEGINF, CONS_INF) << endl;

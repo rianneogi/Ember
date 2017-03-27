@@ -13,7 +13,7 @@ int main()
 
 	Engine e;
 	printf("Loading weights\n");
-	e.mNet->load("Data/variables.bin");
+	//e.mNet->load("Data/variables.bin");
 	printf("Starting game\n");
 
 	//e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/2PPQB2/2P2N2/P4PPP/1R2K2R b K - 2 0");
@@ -24,7 +24,7 @@ int main()
 	//Move m = e.go();
 	//printf("%s\n", m.toString().c_str());
 	
-	e.learn_eval(1000);
+	e.learn_eval_NN(1000);
 	
 	printf("Saving weights\n");
 	e.mNet->save("Data/variables.bin");

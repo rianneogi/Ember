@@ -30,9 +30,9 @@ Net::~Net()
 void Net::init_net()
 {
 	mBoard = new Board();
-	Input = mBoard->newBlob(make_shape(BatchSize*8*8, 14));
+	Input = mBoard->newBlob(make_shape(BatchSize*8, 14*8));
 	ConvKing = mBoard->newBlob(make_shape(BatchSize*6*6, 14*9));
-	FCKing = mBoard->newBlob(make_shape(BatchSize*8*8, 1));
+	FCKing = mBoard->newBlob(make_shape(BatchSize*8, 1*8));
 	ActKing = mBoard->newBlob(make_shape(BatchSize, 1*8*8)); //resize in activation neuron
 
 	FullFC1 = mBoard->newBlob(make_shape(BatchSize, 10));

@@ -8,9 +8,26 @@ public:
 	Board* mBoard;
 
 	Blob* Input;
+
 	Blob* ConvKing;
 	Blob* FCKing;
 	Blob* ActKing;
+
+	Blob* FCRank;
+	Blob* ActRank;
+
+	Blob* ConvFile;
+	Blob* FCFile;
+	Blob* ActFile;
+
+	Blob* ConvDiag;
+	Blob* FCDiag;
+	Blob* ActDiag;
+
+	Blob* ConvKnight;
+	Blob* FCKnight;
+	Blob* ActKnight;
+
 	Blob* FullFC1;
 	Blob* FullFCAct1;
 	Blob* OutputMoveFC;

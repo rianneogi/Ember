@@ -7,11 +7,19 @@ extern const int CONST_INF;
 struct Data
 {
 public:
-	Data();
-	~Data();
+	Data() : move(make_shape(20, 2, 64)) {}
+	~Data() { move.freemem(); }
 
 	PositionNN pos;
 	Tensor move;
+	int eval;
+};
+
+struct GoReturn
+{
+	GoReturn(Move move, int score) : m(move), eval(score) {}
+
+	Move m;
 	int eval;
 };
 
@@ -32,7 +40,7 @@ public:
 	Engine();
 	~Engine();
 
-	Move go_alphabeta();
+	GoReturn go_alphabeta();
 	Move go_negamax();
 	int AlphaBeta(int alpha, int beta, int depth);
 	int Negamax(int depth);
@@ -41,6 +49,7 @@ public:
 	int QuiescenceSearch();
 
 	void learn_eval(int num_games);
+	void learn_eval_NN(int num_games);
 
 	uint64_t perft(int depth);
 };

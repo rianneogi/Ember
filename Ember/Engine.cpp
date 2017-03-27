@@ -23,28 +23,30 @@ Engine::~Engine()
 	mNet = NULL;
 }
 
-Move Engine::go_alphabeta()
+GoReturn Engine::go_alphabeta()
 {
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
 	int bestscore = -CONST_INF;
 	Move bestmove = createNullMove(CurrentPos.EPSquare);
+	//assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
+	//assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
+	//assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
 	for (size_t i = 0; i < moves.size(); i++)
 	{
 		//printf("Move: %s\n", moves[i].toString());
-
 		CurrentPos.makeMove(moves[i]);
-		int score = -AlphaBeta(-CONST_INF, CONST_INF, 4);
+		int score = -AlphaBeta(-CONST_INF, CONST_INF, 3);
 		CurrentPos.unmakeMove(moves[i]);
 
-		if (score > bestscore)
+		if (score >= bestscore)
 		{
 			bestscore = score;
 			bestmove = moves[i];
 		}
 	}
-	return bestmove;
+	return GoReturn(bestmove, bestscore);
 }
 
 Move Engine::go_negamax()
@@ -73,21 +75,16 @@ Move Engine::go_negamax()
 
 int Engine::AlphaBeta(int alpha, int beta, int depth)
 {
-	int status = CurrentPos.getGameStatus();
-	if (status != STATUS_NOTOVER)
-	{
-		if (status == STATUS_3FOLDREP || status == STATUS_STALEMATE || status == STATUS_INSUFFICIENTMAT)
-		{
-			return 0;
-		}
-	}
-
 	if (depth == 0)
 		return LeafEval();
 
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
+
+	//assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
+	//assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
+	//assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
 
 	if (moves.size() == 0)
 	{
@@ -302,6 +299,104 @@ void Engine::learn_eval(int num_games)
 	}
 }
 
+void Engine::learn_eval_NN(int num_games)
+{
+	uint64_t c = 0;
+	for (int i = 0; i < num_games; i++)
+	{
+		printf("Game: %d\n", i + 1);
+		CurrentPos.setStartPos();
+		while (true)
+		{
+			Move m = createNullMove(CurrentPos.EPSquare);
+			int eval = 0;
+
+			int r1 = rand() % 100;
+			if (r1 < 25)
+			{
+				std::vector<Move> moves;
+				moves.reserve(128);
+				CurrentPos.generateMoves(moves);
+
+				m = moves[rand() % moves.size()];
+				assert(m.isNullMove() == false);
+			}
+			else
+			{
+				Bitset hash = CurrentPos.HashKey;
+
+				GoReturn go = go_alphabeta();
+				m = go.m;
+				eval = go.eval;
+				if (CurrentPos.Turn == COLOR_BLACK)
+				{
+					eval = -eval;
+				}
+				assert(m.isNullMove() == false);
+				assert(CurrentPos.HashKey == hash);
+			}
+			//assert(m.isNullMove() == false);
+
+			int r2 = rand() % 1;
+			if (r2 == 0 && r1>=25)
+			{
+				Data* d = &Database[DBCounter];
+				d->pos.copyFromPosition(CurrentPos);
+				d->eval = eval;
+				moveToTensor(m, &d->move);
+
+				DBCounter++;
+				if (DBCounter == DATABASE_SIZE)
+				{
+					DBCounter = 0;
+					printf("Counter reset\n");
+				}
+
+				if (DBSize < DATABASE_SIZE)
+				{
+					DBSize++;
+				}
+			}
+
+			if (DBSize >= BatchSize && c % 64 == 0)
+			{
+				//printf("EPOCH\n");
+				for (int epoch = 0; epoch < 100; epoch++)
+				{
+					Float error = 0;
+					for (int batch = 0; batch < DBSize/BatchSize; batch++)
+					{
+						for (uint64_t i = 0; i < BatchSize; i++)
+						{
+							//size_t id = rand() % DBSize;
+							size_t id = batch*BatchSize + i;
+							memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
+							//memcpy(&OutputTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
+							OutputEvalTensor(i) = Database[id].eval / 100.0;
+						}
+						for (int run = 0; run < 1; run++)
+						{
+							error += mNet->train(InputTensor, nullptr, &OutputEvalTensor);
+							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
+						}
+					}
+					if (epoch == 9)
+					{
+						printf("Final error: %f, avg: %f\n", error, error / (BatchSize * DBSize));
+					}
+				}
+			}
+
+			CurrentPos.makeMove(m);
+			if (CurrentPos.getGameStatus() != STATUS_NOTOVER || CurrentPos.movelist.size() > 100)
+			{
+				break;
+			}
+			c++;
+		}
+	}
+}
+
 uint64_t Engine::perft(int depth)
 {
 	if (depth == 0) return 1;
@@ -331,13 +426,4 @@ uint64_t Engine::perft(int depth)
 	assert(os == CurrentPos.OccupiedSq);
 
 	return count;
-}
-
-Data::Data() : move(make_shape(20, 2, 64))
-{
-}
-
-Data::~Data()
-{
-	move.freemem();
 }

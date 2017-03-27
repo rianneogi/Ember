@@ -365,6 +365,10 @@ void UCI::run_uci()
 			cout << "bestmove " << m.toString() << endl;
 			//e1.pos.forceMove(m);
 		}
+		else if (s == "setboard")
+		{
+			Ember.CurrentPos.loadFromFEN(str.substr(getStringTokenPosition(str, ' ', 2)));
+		}
 		else if (s == "position")
 		{
 			s = getStringToken(str, ' ', 2);

@@ -11,9 +11,11 @@ int main()
 	magicinit();
 	datainit();
 
+	std::string path = "Data/variables_v2.bin";
+
 	Engine e;
 	printf("Loading weights\n");
-	e.mNet->load("Data/variables_v2.bin");
+	e.mNet->load(path);
 	printf("Starting game\n");
 
 	//e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/2PPQB2/2P2N2/P4PPP/1R2K2R b K - 2 0");
@@ -27,7 +29,7 @@ int main()
 	/*e.learn_eval_NN(100);
 	
 	printf("Saving weights\n");
-	e.mNet->save("Data/variables.bin");
+	e.mNet->save(path);
 	printf("Done\n");*/
 
 	UCI uci;

@@ -86,7 +86,7 @@ Move Engine::go_negamax()
 int Engine::AlphaBeta(int alpha, int beta, int depth)
 {
 	if (depth == 0)
-		return LeafEval_NN();
+		return LeafEval();
 
 	std::vector<Move> moves;
 	moves.reserve(128);

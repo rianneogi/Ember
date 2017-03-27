@@ -17,20 +17,18 @@ int main()
 	printf("Loading weights\n");
 	e.mNet->load(path);
 	printf("Starting game\n");
-
-	//e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/2PPQB2/2P2N2/P4PPP/1R2K2R b K - 2 0");
-	//e.CurrentPos.display(0);
-	//PositionNN pos(e.CurrentPos);
-	//e.mNet->mBoard->forward(pos.mTensor);
-	//printf("%f %d\n", e.mNet->OutputEvalFC->Data(0), e.LeafEval());
-	//Move m = e.go();
-	//printf("%s\n", m.toString().c_str());
 	
-	/*e.learn_eval_NN(100);
+	e.learn_eval_NN(100);
 	
 	printf("Saving weights\n");
 	e.mNet->save(path);
-	printf("Done\n");*/
+	printf("Done\n");
+
+	e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/2PPQB2/2P2N2/P4PPP/1R2K2R b K - 2 0");
+	e.CurrentPos.display(0);
+	printf("%d %d\n", e.LeafEval_NN(), e.LeafEval());
+	//Move m = e.go();
+	//printf("%s\n", m.toString().c_str());
 
 	UCI uci;
 	uci.run_uci();

@@ -4,7 +4,7 @@ PositionNN::PositionNN() : Squares(make_shape(8, 8, 14)), OtherData(make_shape(6
 {
 }
 
-PositionNN::PositionNN(const Position& pos) : Squares(make_shape(8, 8, 14))
+PositionNN::PositionNN(const Position& pos) : Squares(make_shape(8, 8, 14)), OtherData(make_shape(69))
 {
 	copyFromPosition(pos);
 }

@@ -7,6 +7,7 @@
 #include <Neurons\TanhNeuron.h>
 #include <Neurons\LeakyReLUNeuron.h>
 #include <ErrorFunctions\MeanSquaredError.h>
+#include <ErrorFunctions\L1Error.h>
 #include <Optimizers\StandardOptimizer.h>
 #include <Optimizers\AdamOptimizer.h>
 
@@ -41,7 +42,7 @@ void Net::init_net()
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
 	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
 
-	mBoard->setOptimizer(new AdamOptimizer(0.0001));
+	mBoard->setOptimizer(new AdamOptimizer(0.001));
 
 	//mBoard->addNeuron(new Im2ColNeuron(Input, ConvKing, 3, 3));
 	mBoard->addNeuron(new ConvNeuron(Input, FCKing, 1));
@@ -50,13 +51,11 @@ void Net::init_net()
 	//mBoard->addNeuron(new LeakyReLUNeuron(FullFC1, FullFCAct1, 0.05));
 	//mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputMoveFC, 1));
 	//mBoard->addNeuron(new TanhNeuron(OutputMoveFC, Output_Move));
-	auto n = new FullyConnectedNeuron(ActKing, OutputEvalFC, 1);
-	//n->Weights->Data.setconstant(0);
-	mBoard->addNeuron(n);
+	mBoard->addNeuron(new FullyConnectedNeuron(ActKing, OutputEvalFC, 1));
 	mBoard->addNeuron(new LeakyReLUNeuron(OutputEvalFC, Output_Eval, 1));
 
 	//mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Move, nullptr));
-	mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Eval, nullptr));
+	mBoard->addErrorFunction(new L1Error(Input, Output_Eval));
 }
 
 Float Net::train(Tensor inputs, Tensor* output_move, Tensor* output_eval)

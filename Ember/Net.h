@@ -45,6 +45,8 @@ public:
 
 	Float train(Tensor inputs, Tensor* output_move, Tensor* output_eval);
 
+	Float get_eval(Tensor input);
+
 	void save(std::string filename);
 	void load(std::string filename);
 };

@@ -245,3 +245,4 @@ ModelManifest.xml
 *.VC.db
 *.VC.VC.opendb
 /Ember/Data/variables.bin
+/Ember/Data/variables_v2.bin

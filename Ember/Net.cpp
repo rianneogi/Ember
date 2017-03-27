@@ -68,6 +68,12 @@ Float Net::train(Tensor inputs, Tensor* output_move, Tensor* output_eval)
 	return error;
 }
 
+Float Net::get_eval(Tensor input)
+{
+	mBoard->forward(input);
+	return Output_Eval->Data(0);
+}
+
 void Net::save(std::string filename)
 {
 	mBoard->save_variables(filename);

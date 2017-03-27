@@ -86,7 +86,7 @@ Move Engine::go_negamax()
 int Engine::AlphaBeta(int alpha, int beta, int depth)
 {
 	if (depth == 0)
-		return LeafEval();
+		return LeafEval_NN();
 
 	std::vector<Move> moves;
 	moves.reserve(128);
@@ -291,6 +291,19 @@ int Engine::LeafEval()
 		ret = -ret;
 	}
 	return ret;
+}
+
+int Engine::LeafEval_NN()
+{
+	PosNN.copyFromPosition(CurrentPos);
+	for (uint64_t i = 0; i < BatchSize; i++)
+	{
+		memcpy(&InputTensor(i, 0, 0, 0), PosNN.Squares.mData, sizeof(Float) * 8 * 8 * 14);
+	}
+	int eval = mNet->get_eval(InputTensor)*100;
+	if (CurrentPos.Turn == COLOR_BLACK)
+		eval = -eval;
+	return eval;
 }
 
 void Engine::learn_eval(int num_games)

@@ -34,6 +34,7 @@ public:
 	size_t DBSize;
 
 	Net* mNet;
+	PositionNN PosNN;
 	Tensor InputTensor;
 	Tensor OutputTensor;
 	Tensor OutputEvalTensor;
@@ -50,6 +51,7 @@ public:
 	int Negamax(int depth);
 
 	int LeafEval();
+	int LeafEval_NN();
 	int QuiescenceSearch();
 
 	void learn_eval(int num_games);

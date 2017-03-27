@@ -35,6 +35,8 @@ extern int Minus8[2][64];
 extern int Rank[64];
 extern int File[64];
 
+extern int Mirror[64];
+
 std::string Int2Sq(int n);
 int Sq2Int(std::string s);
 
@@ -44,6 +46,15 @@ void datainit();
 
 void printBitset(Bitset b);
 void printBitsetDiag(Bitset b);
+
+inline int getColorMirror(int col, int n)
+{
+	if (col == COLOR_WHITE)
+	{
+		return n;
+	}
+	return Mirror[n];
+}
 
 inline Bitset getPos2Bit(int n)
 {

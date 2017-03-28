@@ -11,14 +11,14 @@ int main()
 	magicinit();
 	datainit();
 
-	std::string path = "Data/variables_v2.bin";
+	std::string path = "Data/variables_v3.bin";
 
-	Engine e;
+	/*Engine e;
 	printf("Loading weights\n");
 	e.mNet->load(path);
 	printf("Starting training\n");
 	
-	e.learn_eval_NN(250, 600);
+	e.learn_eval_NN(25000, 600);
 	
 	printf("Saving weights\n");
 	e.mNet->save(path);
@@ -34,7 +34,7 @@ int main()
 
 	e.CurrentPos.loadFromFEN("rnb1kbr1/p2ppppp/1qp5/1p6/2PPNP2/8/PP3KPP/R1BQ1BNR w q - 1 8");
 	e.CurrentPos.display(0);
-	printf("%d %d\n", e.LeafEval_NN(), e.LeafEval());
+	printf("%d %d\n", e.LeafEval_NN(), e.LeafEval());*/
 
 	//Move m = e.go();
 	//printf("%s\n", m.toString().c_str());

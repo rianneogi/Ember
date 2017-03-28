@@ -3,7 +3,7 @@
 const int DATABASE_SIZE = 6400;
 const int CONST_INF = 10000;
 
-const int BATCH_SIZE = 64;
+const int BATCH_SIZE = 1;
 
 Engine::Engine()
 	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 8, 8, 14)), 
@@ -123,7 +123,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	NodeCount++;
 
 	if (depth == 0)
-		return LeafEval_MatOnly();
+		return LeafEval_NN();
 
 	std::vector<Move> moves;
 	moves.reserve(128);

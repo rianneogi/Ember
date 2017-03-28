@@ -115,6 +115,15 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	//assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
 	//assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
 
+	int probe = Table->Probe(CurrentPos.HashKey, depth, alpha, beta);
+	if (probe != CONS_TTUNKNOWN)
+	{
+		if (ply != 0)
+		{
+			return probe;
+		}
+	}
+
 	if (moves.size() == 0)
 	{
 		int status = CurrentPos.getGameStatus();
@@ -132,6 +141,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	}
 
 	int bestscore = -CONST_INF;
+	int bound = TT_ALPHA;
 	for (int i = 0; i < moves.size(); i++)
 	{
 		Move m = getNextMove(moves, i, ply);
@@ -160,18 +170,20 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 					}
 				}
 			}
+			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, CONST_NULLMOVE); //not storing best move for now
 			return score;
 		}
 		else if (score > bestscore)
 		{
 			if (score > alpha)
 			{
+				bound = TT_EXACT;
 				alpha = score;
 			}
 			bestscore = score;
 		}
 	}
-
+	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, CONST_NULLMOVE); //not storing best move for now
 	return bestscore;
 }
 
@@ -244,7 +256,6 @@ int Engine::Negamax(int depth, int ply)
 		}
 		mNet->train(InputTensor, nullptr, &OutputEvalTensor);
 	}
-
 	return bestscore;
 }
 

@@ -43,7 +43,7 @@ Bitset TTRandom()
 	//return (rand() | (rand()<<16) | (rand()<<32) | (rand()<<48));
 }
 
-TranspositionTable::TranspositionTable(unsigned long long s)
+TranspositionTable::TranspositionTable(uint64_t s)
 {
 	Size = s;
 	Entries = new HashEntry[Size];

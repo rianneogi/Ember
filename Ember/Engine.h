@@ -45,6 +45,8 @@ public:
 
 	TranspositionTable* Table;
 
+	uint64_t NodeCount;
+
 	Engine();
 	~Engine();
 
@@ -64,7 +66,7 @@ public:
 	void setKiller(const Move& m, int ply);
 
 	void learn_eval(int num_games);
-	void learn_eval_NN(int num_games);
+	void learn_eval_NN(int num_games, double time_limit);
 
 	uint64_t perft(int depth);
 };

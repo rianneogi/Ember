@@ -30,6 +30,8 @@ Engine::Engine()
 	}
 
 	Table = new TranspositionTable(4096);
+
+	NodeCount = 0;
 }
 
 Engine::~Engine()
@@ -42,18 +44,32 @@ Engine::~Engine()
 	mNet = NULL;
 }
 
+int getNPS(int nodes, int milliseconds)
+{
+	if (milliseconds != 0)
+	{
+		return (nodes / (milliseconds / 1000.0));
+	}
+	return 0;
+}
+
 Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 {
+	Clock timer;
+	timer.Start();
 	GoReturn go = go_alphabeta(4);
+	timer.Stop();
 	if (print)
 	{
-		std::cout << "info score cp " << go.eval << std::endl;
+		std::cout << "info score cp " << go.eval << " depth " << 4 << " nodes " << NodeCount << 
+			" nps " << getNPS(NodeCount, timer.ElapsedMilliseconds()) << std::endl;
 	}
 	return go.m;
 }
 
 GoReturn Engine::go_alphabeta(int depth)
 {
+	NodeCount = 0;
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
@@ -104,8 +120,10 @@ Move Engine::go_negamax(int depth)
 
 int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 {
+	NodeCount++;
+
 	if (depth == 0)
-		return LeafEval_NN();
+		return LeafEval_MatOnly();
 
 	std::vector<Move> moves;
 	moves.reserve(128);
@@ -342,15 +360,21 @@ void Engine::learn_eval(int num_games)
 	}
 }
 
-void Engine::learn_eval_NN(int num_games)
+void Engine::learn_eval_NN(int num_games, double time_limit)
 {
 	uint64_t c = 0;
+	Clock timer;
+	timer.Start();
 	for (int i = 0; i < num_games; i++)
 	{
 		printf("Game: %d\n", i + 1);
 		CurrentPos.setStartPos();
 		while (true)
 		{
+			timer.Stop();
+			if (timer.ElapsedSeconds() >= time_limit)
+				return;
+
 			Move m = createNullMove(CurrentPos.EPSquare);
 			int eval = 0;
 

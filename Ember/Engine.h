@@ -40,20 +40,26 @@ public:
 	Tensor OutputEvalTensor;
 	uint64_t BatchSize;
 
+	Move KillerMoves[2][100];
+	long HistoryScores[64][64];
+
 	Engine();
 	~Engine();
 
 	Move go(int mode, int wtime, int btime, int winc, int binc, bool print);
 
-	GoReturn go_alphabeta();
-	Move go_negamax();
-	int AlphaBeta(int alpha, int beta, int depth);
-	int Negamax(int depth);
+	GoReturn go_alphabeta(int depth);
+	Move go_negamax(int depth);
+	int AlphaBeta(int alpha, int beta, int depth, int ply);
+	int Negamax(int depth, int ply);
 
 	int LeafEval();
 	int LeafEval_MatOnly();
 	int LeafEval_NN();
-	int QuiescenceSearch();
+	
+	int getMoveScore(const Move& m, int ply);
+	Move getNextMove(std::vector<Move>& moves, int current_move, int ply);
+	void setKiller(const Move& m, int ply);
 
 	void learn_eval(int num_games);
 	void learn_eval_NN(int num_games);

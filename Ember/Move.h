@@ -33,3 +33,8 @@ public:
 
 Move createNullMove(int epsquare);
 Move String2Move(const std::string& s);
+
+inline bool noMaterialGain(const Move& m)
+{
+	return (m.getCapturedPiece() == SQUARE_EMPTY && m.getSpecial() == PIECE_NONE);
+}

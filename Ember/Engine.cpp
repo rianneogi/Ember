@@ -13,6 +13,21 @@ Engine::Engine()
 	DBCounter = 0;
 	DBSize = 0;
 	mNet = new Net(BatchSize);
+
+	for (int i = 0; i<2; i++)
+	{
+		for (int j = 0; j<100; j++)
+		{
+			KillerMoves[i][j] = createNullMove(CurrentPos.EPSquare);
+		}
+	}
+	for (int i = 0; i<64; i++)
+	{
+		for (int j = 0; j<64; j++)
+		{
+			HistoryScores[i][j] = 0;
+		}
+	}
 }
 
 Engine::~Engine()
@@ -25,7 +40,7 @@ Engine::~Engine()
 
 Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 {
-	GoReturn go = go_alphabeta();
+	GoReturn go = go_alphabeta(4);
 	if (print)
 	{
 		std::cout << "info score cp " << go.eval << std::endl;
@@ -33,7 +48,7 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 	return go.m;
 }
 
-GoReturn Engine::go_alphabeta()
+GoReturn Engine::go_alphabeta(int depth)
 {
 	std::vector<Move> moves;
 	moves.reserve(128);
@@ -47,7 +62,7 @@ GoReturn Engine::go_alphabeta()
 	{
 		//printf("Move: %s\n", moves[i].toString());
 		CurrentPos.makeMove(moves[i]);
-		int score = -AlphaBeta(-CONST_INF, CONST_INF, 3);
+		int score = -AlphaBeta(-CONST_INF, CONST_INF, depth-1,1);
 		CurrentPos.unmakeMove(moves[i]);
 
 		if (score >= bestscore)
@@ -59,7 +74,7 @@ GoReturn Engine::go_alphabeta()
 	return GoReturn(bestmove, bestscore);
 }
 
-Move Engine::go_negamax()
+Move Engine::go_negamax(int depth)
 {
 	std::vector<Move> moves;
 	moves.reserve(128);
@@ -71,7 +86,7 @@ Move Engine::go_negamax()
 		//printf("Move: %s\n", moves[i].toString());
 
 		CurrentPos.makeMove(moves[i]);
-		int score = -Negamax(4);
+		int score = -Negamax(depth-1,1);
 		CurrentPos.unmakeMove(moves[i]);
 
 		if (score > bestscore)
@@ -83,7 +98,7 @@ Move Engine::go_negamax()
 	return bestmove;
 }
 
-int Engine::AlphaBeta(int alpha, int beta, int depth)
+int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 {
 	if (depth == 0)
 		return LeafEval_MatOnly();
@@ -115,13 +130,33 @@ int Engine::AlphaBeta(int alpha, int beta, int depth)
 	int bestscore = -CONST_INF;
 	for (int i = 0; i < moves.size(); i++)
 	{
-		CurrentPos.makeMove(moves[i]); 
-		int score = -AlphaBeta(-beta, -alpha, depth - 1);
-		CurrentPos.unmakeMove(moves[i]);
+		Move m = getNextMove(moves, i, ply);
+
+		CurrentPos.makeMove(m);
+		int score = -AlphaBeta(-beta, -alpha, depth - 1, ply+1);
+		CurrentPos.unmakeMove(m);
 
 		if (score >= beta)
 		{
-			return beta;
+			if (noMaterialGain(m))
+			{
+				//if(Table.getBestMove(pos.TTKey)!=m) //dont store hash move as a killer
+				setKiller(m, ply);
+
+				int bonus = depth*depth;
+				HistoryScores[m.getMovingPiece()][m.getTo()] += bonus;
+				if (HistoryScores[m.getMovingPiece()][m.getTo()] > 200000) //prevent overflow of history values
+				{
+					for (int i = 0; i < 6; i++)
+					{
+						for (int j = 0; j < 64; j++)
+						{
+							HistoryScores[i][j] /= 2;
+						}
+					}
+				}
+			}
+			return score;
 		}
 		else if (score > bestscore)
 		{
@@ -136,7 +171,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth)
 	return bestscore;
 }
 
-int Engine::Negamax(int depth)
+int Engine::Negamax(int depth, int ply)
 {
 	if (depth == 0)
 		return LeafEval();
@@ -168,7 +203,7 @@ int Engine::Negamax(int depth)
 	for (size_t i = 0; i < moves.size(); i++)
 	{
 		CurrentPos.makeMove(moves[i]);
-		int score = -Negamax(depth - 1);
+		int score = -Negamax(depth - 1, ply+1);
 		CurrentPos.unmakeMove(moves[i]);
 
 		if (score > bestscore)
@@ -207,123 +242,6 @@ int Engine::Negamax(int depth)
 	}
 
 	return bestscore;
-}
-
-int PieceSqValues[6][64] =
-{
-	//{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, //empty
-	{ 0,  0,  0,  0,  0,  0,  0,  0, //pawn
-	-12, -4, -4,  0,  0, -4, -4,-12,
-	-12, -4,  8,  8,  8,  8, -4,-12,
-	-8,  8, 24, 32, 32, 24,  8, -8,
-	-8,  8,  8, 16, 16,  8,  8, -8,
-	-8,  0,  0,  0,  0,  0,  0, -8,
-	-8,  0,  0,  0,  0,  0,  0, -8,
-	0,  0,  0,  0,  0,  0,  0,  0 },
-
-	{ 2,  4,  6,  6,  6,  6,  4,  2, //knight, non-negative
-	4,  6, 10, 12, 12, 10,  6,  4,
-	6, 14, 20, 20, 20, 20, 14,  6,
-	10, 18, 22, 20, 20, 22, 18, 10,
-	10, 16, 18, 18, 18, 18, 16, 10,
-	10, 18, 24, 20, 20, 24, 18, 10,
-	8, 12, 20, 22, 22, 20, 12,  8,
-	4,  8, 10, 12, 12, 10,  8,  4 },
-
-	{ 16, 10,  6,  6,  6,  6, 10, 16, //bishop, non-negative
-	14, 16, 12, 10, 10, 12, 16, 14,
-	10, 14, 18, 14, 14, 18, 14, 10,
-	16, 12, 18, 22, 22, 18, 12, 16,
-	16, 12, 14, 18, 18, 14, 12, 16,
-	16, 14, 18, 18, 18, 18, 14, 16,
-	10, 18, 16, 14, 14, 16, 18, 10,
-	14, 14, 10, 10, 10, 10, 14, 14 },
-
-	{ 8,  8, 10, 12, 12, 10,  8,  8, //rook
-	8,  8, 10, 12, 12, 10,  8,  8,
-	8,  8, 10, 12, 12, 10,  8,  8,
-	10, 10, 12, 12, 12, 12, 10, 10,
-	16, 16, 16, 16, 16, 16, 16, 16,
-	12, 12, 14, 16, 16, 14, 12, 12,
-	18, 18, 20, 22, 22, 20, 18, 18,
-	10, 10, 12, 14, 14, 12, 10, 10 },
-
-	{ 8,  6,  8,  8,  8,  8,  6,  8, //queen
-	8,  8,  8, 10, 10,  8,  8,  8,
-	8,  8, 10, 10, 10, 10,  8,  8,
-	8, 10, 12, 12, 12, 12, 10,  8,
-	10, 12, 12, 14, 14, 12, 12, 10,
-	8, 10, 12, 14, 14, 12, 10,  8,
-	8, 10, 10, 12, 12, 10, 10,  8,
-	10,  8, 10, 10, 10, 10,  8, 10 },
-
-	{ 20, 20,-10,-20,-20, 10, 20, 20, //king
-	10, 20,  0,-30,-30,  0, 15, 10,
-	0,-10,-20,-40,-40,-20,-10,  0,
-	-10,-20,-40,-50,-50,-40,-20,-10,
-	-60,-60,-60,-60,-60,-60,-60,-60,
-	-80,-80,-80,-80,-80,-80,-80,-80,
-	-80,-80,-80,-80,-80,-80,-80,-80,
-	-80,-80,-80,-80,-80,-80,-80,-80 }
-};
-
-int Engine::LeafEval()
-{
-	int score[2] = { 0,0 };
-	for (int i = 0; i < 2; i++)
-	{
-		score[i] += 100 * popcnt(CurrentPos.Pieces[i][PIECE_PAWN]);
-		score[i] += 300 * popcnt(CurrentPos.Pieces[i][PIECE_KNIGHT]);
-		score[i] += 300 * popcnt(CurrentPos.Pieces[i][PIECE_BISHOP]);
-		score[i] += 500 * popcnt(CurrentPos.Pieces[i][PIECE_ROOK]);
-		score[i] += 900 * popcnt(CurrentPos.Pieces[i][PIECE_QUEEN]);
-	}
-
-	for (int i = 0; i < 64; i++)
-	{
-		int sq = CurrentPos.Squares[i];
-		score[getSquare2Color(sq)] += PieceSqValues[getSquare2Piece(sq)][getColorMirror(getSquare2Color(sq), i)];
-	}
-
-	int ret = score[0] - score[1];
-	if (CurrentPos.Turn == COLOR_BLACK)
-	{
-		ret = -ret;
-	}
-	return ret;
-}
-
-int Engine::LeafEval_MatOnly()
-{
-	int score[2] = { 0,0 };
-	for (int i = 0; i < 2; i++)
-	{
-		score[i] += 100 * popcnt(CurrentPos.Pieces[i][PIECE_PAWN]);
-		score[i] += 300 * popcnt(CurrentPos.Pieces[i][PIECE_KNIGHT]);
-		score[i] += 300 * popcnt(CurrentPos.Pieces[i][PIECE_BISHOP]);
-		score[i] += 500 * popcnt(CurrentPos.Pieces[i][PIECE_ROOK]);
-		score[i] += 900 * popcnt(CurrentPos.Pieces[i][PIECE_QUEEN]);
-	}
-
-	int ret = score[0] - score[1];
-	if (CurrentPos.Turn == COLOR_BLACK)
-	{
-		ret = -ret;
-	}
-	return ret;
-}
-
-int Engine::LeafEval_NN()
-{
-	PosNN.copyFromPosition(CurrentPos);
-	for (uint64_t i = 0; i < BatchSize; i++)
-	{
-		memcpy(&InputTensor(i, 0, 0, 0), PosNN.Squares.mData, sizeof(Float) * 8 * 8 * 14);
-	}
-	int eval = mNet->get_eval(InputTensor)*100;
-	if (CurrentPos.Turn == COLOR_BLACK)
-		eval = -eval;
-	return eval;
 }
 
 void Engine::learn_eval(int num_games)
@@ -439,7 +357,7 @@ void Engine::learn_eval_NN(int num_games)
 			{
 				Bitset hash = CurrentPos.HashKey;
 
-				GoReturn go = go_alphabeta();
+				GoReturn go = go_alphabeta(4);
 				m = go.m;
 				eval = go.eval;
 				if (CurrentPos.Turn == COLOR_BLACK)

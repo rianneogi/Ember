@@ -21,9 +21,11 @@
   <ItemGroup>
     <ClCompile Include="Bitops.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="Evaluation.cpp" />
     <ClCompile Include="MagicBitboards.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Move.cpp" />
+    <ClCompile Include="MoveSort.cpp" />
     <ClCompile Include="Net.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="PositionNN.cpp" />

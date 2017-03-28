@@ -3,7 +3,11 @@
 const int DATABASE_SIZE = 6400;
 const int CONST_INF = 10000;
 
+#ifdef TRAINING_BUILD
+const int BATCH_SIZE = 64;
+#else
 const int BATCH_SIZE = 1;
+#endif
 
 Engine::Engine()
 	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 8, 8, 14)), 
@@ -123,7 +127,14 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	NodeCount++;
 
 	if (depth == 0)
+	{
+#ifdef TRAINING_BUILD
+		return LeafEval_MatOnly();
+#else
 		return LeafEval_NN();
+#endif
+	}
+		
 
 	std::vector<Move> moves;
 	moves.reserve(128);
@@ -398,7 +409,7 @@ void Engine::learn_eval_NN(int num_games, double time_limit)
 			{
 				Bitset hash = CurrentPos.HashKey;
 
-				GoReturn go = go_alphabeta(4);
+				GoReturn go = go_alphabeta(4 + (rand()%2));
 				m = go.m;
 				eval = go.eval;
 				if (CurrentPos.Turn == COLOR_BLACK)

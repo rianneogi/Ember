@@ -13,7 +13,8 @@ int main()
 
 	std::string path = "Data/variables_v3.bin";
 
-	/*Engine e;
+#ifdef TRAINING_BUILD
+	Engine e;
 	printf("Loading weights\n");
 	e.mNet->load(path);
 	printf("Starting training\n");
@@ -34,14 +35,16 @@ int main()
 
 	e.CurrentPos.loadFromFEN("rnb1kbr1/p2ppppp/1qp5/1p6/2PPNP2/8/PP3KPP/R1BQ1BNR w q - 1 8");
 	e.CurrentPos.display(0);
-	printf("%d %d\n", e.LeafEval_NN(), e.LeafEval());*/
+	printf("%d %d\n", e.LeafEval_NN(), e.LeafEval());
+	_getch();
 
 	//Move m = e.go();
 	//printf("%s\n", m.toString().c_str());
-
+#else
 	UCI uci;
 	uci.Ember.mNet->load(path);
 	uci.run_uci();
+#endif
 
 	/*Engine e;
 	e.CurrentPos.display(0);

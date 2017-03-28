@@ -2,6 +2,8 @@
 
 #include "Net.h"
 
+#define TRAINING_BUILD
+
 extern const int CONST_INF;
 
 enum TimeMode { MODE_DEFAULT, MODE_MOVETIME, MODE_INF, MODE_DEPTH };

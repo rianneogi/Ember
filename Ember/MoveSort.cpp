@@ -18,13 +18,13 @@ int Engine::getMoveScore(const Move& m, int ply)
 			return score;
 		}
 	}*/
-	//if (m == Table.getBestMove(pos.TTKey)) //history best move is always first, give it a big advantage of 400000
-	//{
-	//	score += 4000000;
-	//	SortPhase = SORTPHASE_HASH;
-	//	//tthitcount++;
-	//	return score;
-	//}
+	if (m == Table->getBestMove(CurrentPos.HashKey)) //history best move is always first, give it a big advantage of 400000
+	{
+		score += 4000000;
+		//SortPhase = SORTPHASE_HASH;
+		//tthitcount++;
+		return score;
+	}
 	/*if (!pos.makeMove(m))
 	return -10000;
 	bool incheck = pos.underCheck(pos.turn);

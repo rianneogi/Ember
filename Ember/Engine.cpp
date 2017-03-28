@@ -142,6 +142,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 
 	int bestscore = -CONST_INF;
 	int bound = TT_ALPHA;
+	Move bestmove = CONST_NULLMOVE;
 	for (int i = 0; i < moves.size(); i++)
 	{
 		Move m = getNextMove(moves, i, ply);
@@ -170,7 +171,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 					}
 				}
 			}
-			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, CONST_NULLMOVE); //not storing best move for now
+			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m); //not storing best move for now
 			return score;
 		}
 		else if (score > bestscore)
@@ -181,9 +182,10 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 				alpha = score;
 			}
 			bestscore = score;
+			bestmove = m;
 		}
 	}
-	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, CONST_NULLMOVE); //not storing best move for now
+	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, bestmove); //not storing best move for now
 	return bestscore;
 }
 

@@ -30,7 +30,7 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 	{
 		std::cout << "info score cp " << go.eval << std::endl;
 	}
-	return go_alphabeta().m;
+	return go.m;
 }
 
 GoReturn Engine::go_alphabeta()
@@ -86,7 +86,7 @@ Move Engine::go_negamax()
 int Engine::AlphaBeta(int alpha, int beta, int depth)
 {
 	if (depth == 0)
-		return LeafEval();
+		return LeafEval_NN();
 
 	std::vector<Move> moves;
 	moves.reserve(128);
@@ -369,7 +369,7 @@ void Engine::learn_eval(int num_games)
 							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 						}
 					}
-					if (epoch == 9)
+					if (epoch == 99)
 					{
 						printf("Final error: %f, avg: %f\n", error, error/(64*100));
 					}
@@ -400,7 +400,7 @@ void Engine::learn_eval_NN(int num_games)
 			int eval = 0;
 
 			int r1 = rand() % 100;
-			if (r1 < 25)
+			if (r1 < 75)
 			{
 				std::vector<Move> moves;
 				moves.reserve(128);
@@ -408,6 +408,12 @@ void Engine::learn_eval_NN(int num_games)
 
 				m = moves[rand() % moves.size()];
 				assert(m.isNullMove() == false);
+
+				eval = LeafEval();
+				if (CurrentPos.Turn == COLOR_BLACK)
+				{
+					eval = -eval;
+				}
 			}
 			else
 			{
@@ -425,8 +431,8 @@ void Engine::learn_eval_NN(int num_games)
 			}
 			//assert(m.isNullMove() == false);
 
-			int r2 = rand() % 1;
-			if (r2 == 0 && r1>=25)
+			int r2 = rand() % 3;
+			if (r2 == 0)
 			{
 				Data* d = &Database[DBCounter];
 				d->pos.copyFromPosition(CurrentPos);
@@ -446,7 +452,7 @@ void Engine::learn_eval_NN(int num_games)
 				}
 			}
 
-			if (DBSize >= BatchSize && c % 64 == 0)
+			if (DBSize >= DATABASE_SIZE && c % 64 == 0)
 			{
 				//printf("EPOCH\n");
 				for (int epoch = 0; epoch < 100; epoch++)
@@ -468,7 +474,7 @@ void Engine::learn_eval_NN(int num_games)
 							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 						}
 					}
-					if (epoch == 9)
+					if (epoch == 99)
 					{
 						printf("Final error: %f, avg: %f\n", error, error / (BatchSize * DBSize));
 					}

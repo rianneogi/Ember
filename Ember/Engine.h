@@ -51,6 +51,7 @@ public:
 	int Negamax(int depth);
 
 	int LeafEval();
+	int LeafEval_MatOnly();
 	int LeafEval_NN();
 	int QuiescenceSearch();
 

@@ -86,7 +86,7 @@ Move Engine::go_negamax()
 int Engine::AlphaBeta(int alpha, int beta, int depth)
 {
 	if (depth == 0)
-		return LeafEval_NN();
+		return LeafEval_MatOnly();
 
 	std::vector<Move> moves;
 	moves.reserve(128);
@@ -283,6 +283,26 @@ int Engine::LeafEval()
 	{
 		int sq = CurrentPos.Squares[i];
 		score[getSquare2Color(sq)] += PieceSqValues[getSquare2Piece(sq)][getColorMirror(getSquare2Color(sq), i)];
+	}
+
+	int ret = score[0] - score[1];
+	if (CurrentPos.Turn == COLOR_BLACK)
+	{
+		ret = -ret;
+	}
+	return ret;
+}
+
+int Engine::LeafEval_MatOnly()
+{
+	int score[2] = { 0,0 };
+	for (int i = 0; i < 2; i++)
+	{
+		score[i] += 100 * popcnt(CurrentPos.Pieces[i][PIECE_PAWN]);
+		score[i] += 300 * popcnt(CurrentPos.Pieces[i][PIECE_KNIGHT]);
+		score[i] += 300 * popcnt(CurrentPos.Pieces[i][PIECE_BISHOP]);
+		score[i] += 500 * popcnt(CurrentPos.Pieces[i][PIECE_ROOK]);
+		score[i] += 900 * popcnt(CurrentPos.Pieces[i][PIECE_QUEEN]);
 	}
 
 	int ret = score[0] - score[1];

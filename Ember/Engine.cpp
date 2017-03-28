@@ -28,12 +28,16 @@ Engine::Engine()
 			HistoryScores[i][j] = 0;
 		}
 	}
+
+	Table = new TranspositionTable(4096);
 }
 
 Engine::~Engine()
 {
 	delete[] Database;
 	delete mNet;
+	delete Table;
+	Table = NULL;
 	Database = NULL;
 	mNet = NULL;
 }
@@ -101,7 +105,7 @@ Move Engine::go_negamax(int depth)
 int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 {
 	if (depth == 0)
-		return LeafEval_MatOnly();
+		return LeafEval_NN();
 
 	std::vector<Move> moves;
 	moves.reserve(128);

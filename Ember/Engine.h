@@ -43,6 +43,8 @@ public:
 	Move KillerMoves[2][100];
 	long HistoryScores[64][64];
 
+	TranspositionTable* Table;
+
 	Engine();
 	~Engine();
 

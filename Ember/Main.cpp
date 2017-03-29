@@ -11,7 +11,7 @@ int main()
 	magicinit();
 	datainit();
 
-	std::string path = "Data/variables_v3.bin";
+	std::string path = "Data/variables_v4.bin";
 
 #ifdef TRAINING_BUILD
 	Engine e;
@@ -19,7 +19,7 @@ int main()
 	e.load_nets(path);
 	printf("Starting training\n");
 	
-	e.learn_eval_TD(100, 60);
+	e.learn_eval_TD(100, 3*60);
 	
 	printf("Saving weights\n");
 	e.NetTrain->save(path);

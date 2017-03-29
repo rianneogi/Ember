@@ -17,7 +17,7 @@ public:
 
 	PositionNN pos;
 	Tensor move;
-	int eval;
+	Float eval;
 };
 
 struct GoReturn

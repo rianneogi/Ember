@@ -8,6 +8,7 @@
 #include <Neurons\LeakyReLUNeuron.h>
 #include <ErrorFunctions\MeanSquaredError.h>
 #include <ErrorFunctions\L1Error.h>
+#include <ErrorFunctions\UnitError.h>
 #include <Optimizers\StandardOptimizer.h>
 #include <Optimizers\AdamOptimizer.h>
 
@@ -55,7 +56,7 @@ void Net::init_net()
 	mBoard->addNeuron(new LeakyReLUNeuron(OutputEvalFC, Output_Eval, 1));
 
 	//mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Move, nullptr));
-	mBoard->addErrorFunction(new L1Error(Input, Output_Eval));
+	mBoard->addErrorFunction(new UnitError(Input, Output_Eval));
 }
 
 Float Net::train(Tensor inputs, Tensor* output_move, Tensor* output_eval)

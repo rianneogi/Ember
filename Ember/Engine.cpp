@@ -254,16 +254,20 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 
 void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 {
+	NetTrain->mBoard->mUseOptimizer = false;
+
 	uint64_t c = 0;
 	Clock timer;
 	timer.Start();
 
-	int epsilon = 75;
+	int epsilon = 15;
 
 	for (uint64_t i = 0; i < num_games; i++)
 	{
 		printf("Game: %d\n", i + 1);
 		CurrentPos.setStartPos();
+		DBSize = 0;
+		DBCounter = 0;
 		while (true)
 		{
 			timer.Stop();
@@ -271,7 +275,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				return;
 
 			Move m = createNullMove(CurrentPos.EPSquare);
-			int eval = 0;
+			Float eval = 0.0;
 
 			//Make a move
 			int r1 = rand() % 100;
@@ -284,7 +288,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				m = moves[rand() % moves.size()];
 				assert(m.isNullMove() == false);
 
-				eval = LeafEval_NN();
+				eval = LeafEval_NN() / 100.0;
 				if (CurrentPos.Turn == COLOR_BLACK)
 				{
 					eval = -eval;
@@ -296,7 +300,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 
 				GoReturn go = go_alphabeta(4 + (rand() % 2));
 				m = go.m;
-				eval = LeafEval_NN();
+				eval = LeafEval_NN() / 100.0;
 				if (CurrentPos.Turn == COLOR_BLACK)
 				{
 					eval = -eval;
@@ -316,7 +320,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 			if (DBCounter == DATABASE_MAX_SIZE)
 			{
 				DBCounter = 0;
-				printf("Counter reset\n");
+				printf("Counter reset: %d\n", CurrentPos.movelist.size());
 			}
 
 			if (DBSize < DATABASE_MAX_SIZE)
@@ -324,9 +328,9 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				DBSize++;
 			}
 
-
+			assert(m.isNullMove() == false);
 			CurrentPos.makeMove(m);
-			if (CurrentPos.getGameStatus() != STATUS_NOTOVER)
+			if (CurrentPos.getGameStatus() != STATUS_NOTOVER || CurrentPos.movelist.size()>100)
 			{
 				break;
 			}
@@ -335,7 +339,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 
 	
 		//Train
-		int num_epochs = 100;
+		int num_epochs = 1;
 		int num_runs = 1;
 		Float error = 0;
 		for (int epoch = 0; epoch < num_epochs; epoch++)
@@ -348,7 +352,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 					size_t id = batch*BatchSize + i;
 					memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
 					//memcpy(&OutputMoveTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
-					OutputEvalTensor(i) = Database[id].eval / 100.0;
+					OutputEvalTensor(i) = Database[id].eval;
 				}
 				for (int run = 0; run < num_runs; run++)
 				{
@@ -363,7 +367,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 					size_t id = DBSize - DBSize%BatchSize + i;
 					memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
 					//memcpy(&OutputMoveTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
-					OutputEvalTensor(i) = Database[id].eval / 100.0;
+					OutputEvalTensor(i) = Database[id].eval;
 				}
 				for (int run = 0; run < num_runs; run++)
 				{
@@ -379,22 +383,23 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 void Engine::updateVariables_TD(uint64_t batch_size)
 {
 	float gamma = 0.9;
+	float learnin_rate = 0.00005;
 	for (uint64_t i = 0; i < DBSize-1; i++)
 	{
 		float sum = 0.0;
 		float current_gamma = 1.0;
 		for (uint64_t j = i; j < DBSize; j++)
 		{
-			sum += current_gamma*(Database[j+1].eval-Database[j].eval);
+			sum += current_gamma*(Database[j+1].eval - Database[j].eval);
 			current_gamma *= gamma;
 		}
-
+		printf("sum: %f, eval: %f\n", sum, Database[i].eval);
 		const Optimizer* opt = NetTrain->mBoard->mOptimizer;
 		for (size_t j = 0; j < opt->Variables.size(); j++)
 		{
 			for (uint64_t k = 0; k < opt->Variables[j]->Delta.mSize; k++)
 			{
-				opt->Variables[j]->Data(k) += opt->Variables[j]->Delta(k)*sum;
+				opt->Variables[j]->Data(k) -= learnin_rate*opt->Variables[j]->Delta(k)*sum;
 			}
 		}
 	}

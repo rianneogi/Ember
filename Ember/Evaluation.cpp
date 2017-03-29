@@ -106,7 +106,7 @@ int Engine::LeafEval_MatOnly()
 
 int Engine::LeafEval_NN()
 {
-	//PosNN.copyFromPosition(CurrentPos);
+	PosNN.copyFromPosition(CurrentPos);
 	//for (uint64_t i = 0; i < BatchSize; i++)
 	//{
 	//	memcpy(&InputTensor(i, 0, 0, 0), PosNN.Squares.mData, sizeof(Float) * 8 * 8 * 14);

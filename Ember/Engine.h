@@ -54,6 +54,8 @@ public:
 	Engine();
 	~Engine();
 
+	void load_nets(std::string path);
+
 	//Search
 	Move go(int mode, int wtime, int btime, int winc, int binc, bool print);
 

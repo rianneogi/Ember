@@ -234,10 +234,10 @@ int Engine::Negamax(int depth, int ply)
 		{
 			size_t id = rand() % DBSize;
 			memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.Squares.mData, sizeof(Float) * 14 * 8 * 8);
-			memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
+			memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 			OutputEvalTensor(i) = Database[id].eval;
 		}
-		mNet->train(InputTensor, nullptr, &OutputEvalTensor);
+		NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
 	}
 	return bestscore;
 }

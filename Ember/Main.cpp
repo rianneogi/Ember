@@ -16,13 +16,13 @@ int main()
 #ifdef TRAINING_BUILD
 	Engine e;
 	printf("Loading weights\n");
-	e.mNet->load(path);
+	e.load_nets(path);
 	printf("Starting training\n");
 	
-	e.learn_eval_NN(25000, 8*60*60);
+	e.learn_eval_TD(100, 60);
 	
 	printf("Saving weights\n");
-	e.mNet->save(path);
+	e.NetTrain->save(path);
 	printf("Done\n");
 
 	e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/4QB2/2P2N2/P4PPP/1R2K2R b K - 2 0");

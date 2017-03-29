@@ -52,6 +52,15 @@ Engine::~Engine()
 	NetPlay = NULL;
 }
 
+void Engine::load_nets(std::string path)
+{
+	if(NetTrain)
+		NetTrain->load(path);
+
+	if(NetPlay)
+		NetPlay->load(path);
+}
+
 void Engine::learn_eval(uint64_t num_games)
 {
 	uint64_t c = 0;
@@ -369,8 +378,24 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 
 void Engine::updateVariables_TD(uint64_t batch_size)
 {
-	for (uint64_t i = 0; i < DBSize; i++)
+	float gamma = 0.9;
+	for (uint64_t i = 0; i < DBSize-1; i++)
 	{
+		float sum = 0.0;
+		float current_gamma = 1.0;
+		for (uint64_t j = i; j < DBSize; j++)
+		{
+			sum += current_gamma*(Database[j+1].eval-Database[j].eval);
+			current_gamma *= gamma;
+		}
 
+		const Optimizer* opt = NetTrain->mBoard->mOptimizer;
+		for (size_t j = 0; j < opt->Variables.size(); j++)
+		{
+			for (uint64_t k = 0; k < opt->Variables[j]->Delta.mSize; k++)
+			{
+				opt->Variables[j]->Data(k) += opt->Variables[j]->Delta(k)*sum;
+			}
+		}
 	}
 }

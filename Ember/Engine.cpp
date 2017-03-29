@@ -1,22 +1,20 @@
 #include "Engine.h"
 
-const int DATABASE_SIZE = 6400;
+const int DATABASE_MAX_SIZE = 6400;
 const int CONST_INF = 10000;
 
-#ifdef TRAINING_BUILD
 const int BATCH_SIZE = 64;
-#else
-const int BATCH_SIZE = 1;
-#endif
 
 Engine::Engine()
 	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 8, 8, 14)), 
-	OutputTensor(make_shape(BATCH_SIZE, 2, 64)), OutputEvalTensor(make_shape(BATCH_SIZE, 1))
+	OutputMoveTensor(make_shape(BATCH_SIZE, 2, 64)), OutputEvalTensor(make_shape(BATCH_SIZE, 1))
 {
-	Database = new Data[DATABASE_SIZE];
+	Database = new Data[DATABASE_MAX_SIZE];
 	DBCounter = 0;
 	DBSize = 0;
-	mNet = new Net(BatchSize);
+
+	NetPlay = new Net(1);
+	NetTrain = new Net(BatchSize);
 
 	for (int i = 0; i<2; i++)
 	{
@@ -41,259 +39,23 @@ Engine::Engine()
 Engine::~Engine()
 {
 	delete[] Database;
-	delete mNet;
 	delete Table;
+
+	if(NetTrain)
+		delete NetTrain;
+	if(NetPlay)
+		delete NetPlay;
+
 	Table = NULL;
 	Database = NULL;
-	mNet = NULL;
+	NetTrain = NULL;
+	NetPlay = NULL;
 }
 
-int getNPS(int nodes, int milliseconds)
-{
-	if (milliseconds != 0)
-	{
-		return (nodes / (milliseconds / 1000.0));
-	}
-	return 0;
-}
-
-Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
-{
-	Clock timer;
-	timer.Start();
-	GoReturn go = go_alphabeta(4);
-	timer.Stop();
-	if (print)
-	{
-		std::cout << "info score cp " << go.eval << " depth " << 4 << " nodes " << NodeCount << 
-			" nps " << getNPS(NodeCount, timer.ElapsedMilliseconds()) << std::endl;
-	}
-	return go.m;
-}
-
-GoReturn Engine::go_alphabeta(int depth)
-{
-	NodeCount = 0;
-	std::vector<Move> moves;
-	moves.reserve(128);
-	CurrentPos.generateMoves(moves);
-	int bestscore = -CONST_INF;
-	Move bestmove = createNullMove(CurrentPos.EPSquare);
-	//assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
-	//assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
-	//assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
-	for (size_t i = 0; i < moves.size(); i++)
-	{
-		//printf("Move: %s\n", moves[i].toString());
-		CurrentPos.makeMove(moves[i]);
-		int score = -AlphaBeta(-CONST_INF, CONST_INF, depth-1,1);
-		CurrentPos.unmakeMove(moves[i]);
-
-		if (score >= bestscore)
-		{
-			bestscore = score;
-			bestmove = moves[i];
-		}
-	}
-	return GoReturn(bestmove, bestscore);
-}
-
-Move Engine::go_negamax(int depth)
-{
-	std::vector<Move> moves;
-	moves.reserve(128);
-	CurrentPos.generateMoves(moves);
-	int bestscore = -CONST_INF;
-	Move bestmove = createNullMove(CurrentPos.EPSquare);
-	for (size_t i = 0; i < moves.size(); i++)
-	{
-		//printf("Move: %s\n", moves[i].toString());
-
-		CurrentPos.makeMove(moves[i]);
-		int score = -Negamax(depth-1,1);
-		CurrentPos.unmakeMove(moves[i]);
-
-		if (score > bestscore)
-		{
-			bestscore = score;
-			bestmove = moves[i];
-		}
-	}
-	return bestmove;
-}
-
-int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
-{
-	NodeCount++;
-
-	if (depth == 0)
-	{
-#ifdef TRAINING_BUILD
-		return LeafEval_MatOnly();
-#else
-		return LeafEval_NN();
-#endif
-	}
-		
-
-	std::vector<Move> moves;
-	moves.reserve(128);
-	CurrentPos.generateMoves(moves);
-
-	//assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
-	//assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
-	//assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
-
-	int probe = Table->Probe(CurrentPos.HashKey, depth, alpha, beta);
-	if (probe != CONS_TTUNKNOWN)
-	{
-		if (ply != 0)
-		{
-			return probe;
-		}
-	}
-
-	if (moves.size() == 0)
-	{
-		int status = CurrentPos.getGameStatus();
-		if (status != STATUS_NOTOVER)
-		{
-			if (status == STATUS_STALEMATE || status == STATUS_INSUFFICIENTMAT || status == STATUS_3FOLDREP)
-			{
-				return 0;
-			}
-			else if (status == STATUS_WHITEMATED || status == STATUS_BLACKMATED)
-			{
-				return -CONST_INF;
-			}
-		}
-	}
-
-	int bestscore = -CONST_INF;
-	int bound = TT_ALPHA;
-	Move bestmove = CONST_NULLMOVE;
-	for (int i = 0; i < moves.size(); i++)
-	{
-		Move m = getNextMove(moves, i, ply);
-
-		CurrentPos.makeMove(m);
-		int score = -AlphaBeta(-beta, -alpha, depth - 1, ply+1);
-		CurrentPos.unmakeMove(m);
-
-		if (score >= beta)
-		{
-			if (noMaterialGain(m))
-			{
-				//if(Table.getBestMove(pos.TTKey)!=m) //dont store hash move as a killer
-				setKiller(m, ply);
-
-				int bonus = depth*depth;
-				HistoryScores[m.getMovingPiece()][m.getTo()] += bonus;
-				if (HistoryScores[m.getMovingPiece()][m.getTo()] > 200000) //prevent overflow of history values
-				{
-					for (int i = 0; i < 6; i++)
-					{
-						for (int j = 0; j < 64; j++)
-						{
-							HistoryScores[i][j] /= 2;
-						}
-					}
-				}
-			}
-			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m); //not storing best move for now
-			return score;
-		}
-		else if (score > bestscore)
-		{
-			if (score > alpha)
-			{
-				bound = TT_EXACT;
-				alpha = score;
-			}
-			bestscore = score;
-			bestmove = m;
-		}
-	}
-	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, bestmove); //not storing best move for now
-	return bestscore;
-}
-
-int Engine::Negamax(int depth, int ply)
-{
-	if (depth == 0)
-		return LeafEval();
-
-	int leafeval = LeafEval();
-
-	std::vector<Move> moves;
-	moves.reserve(128);
-	CurrentPos.generateMoves(moves);
-
-	if (moves.size() == 0)
-	{
-		int status = CurrentPos.getGameStatus();
-		if (status != STATUS_NOTOVER)
-		{
-			if (status == STATUS_STALEMATE || status == STATUS_INSUFFICIENTMAT || status == STATUS_3FOLDREP)
-			{
-				return 0;
-			}
-			else if (status == STATUS_WHITEMATED || status == STATUS_BLACKMATED)
-			{
-				return -CONST_INF;
-			}
-		}
-	}
-
-	int bestscore = -CONST_INF;
-	Move bestmove;
-	for (size_t i = 0; i < moves.size(); i++)
-	{
-		CurrentPos.makeMove(moves[i]);
-		int score = -Negamax(depth - 1, ply+1);
-		CurrentPos.unmakeMove(moves[i]);
-
-		if (score > bestscore)
-		{
-			bestscore = score;
-			bestmove = moves[i];
-		}
-	}
-
-	if (bestscore != leafeval && depth>=4)
-	{
-		Data* d = &Database[DBCounter];
-		d->pos.copyFromPosition(CurrentPos);
-		d->eval = leafeval;
-		moveToTensor(bestmove, &d->move);
-
-		DBCounter++;
-		if (DBCounter == DATABASE_SIZE)
-		{
-			DBCounter = 0;
-		}
-
-		if (DBSize < DATABASE_SIZE)
-		{
-			DBSize++;
-		}
-
-		for (uint64_t i = 0; i < BatchSize; i++)
-		{
-			size_t id = rand() % DBSize;
-			memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.Squares.mData, sizeof(Float) * 14 * 8 * 8);
-			memcpy(&OutputTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
-			OutputEvalTensor(i) = Database[id].eval;
-		}
-		mNet->train(InputTensor, nullptr, &OutputEvalTensor);
-	}
-	return bestscore;
-}
-
-void Engine::learn_eval(int num_games)
+void Engine::learn_eval(uint64_t num_games)
 {
 	uint64_t c = 0;
-	for (int i = 0; i < num_games; i++)
+	for (uint64_t i = 0; i < num_games; i++)
 	{
 		printf("Game: %d\n", i + 1);
 		CurrentPos.setStartPos();
@@ -320,18 +82,18 @@ void Engine::learn_eval(int num_games)
 				moveToTensor(m, &d->move);
 
 				DBCounter++;
-				if (DBCounter == DATABASE_SIZE)
+				if (DBCounter == DATABASE_MAX_SIZE)
 				{
 					DBCounter = 0;
 				}
 
-				if (DBSize < DATABASE_SIZE)
+				if (DBSize < DATABASE_MAX_SIZE)
 				{
 					DBSize++;
 				}
 			}
 
-			if (DBSize == DATABASE_SIZE && c%64==0)
+			if (DBSize == DATABASE_MAX_SIZE && c%64==0)
 			{
 				//printf("EPOCH\n");
 				for (int epoch = 0; epoch < 100; epoch++)
@@ -349,7 +111,7 @@ void Engine::learn_eval(int num_games)
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += mNet->train(InputTensor, nullptr, &OutputEvalTensor);
+							error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
 							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 						}
 					}
@@ -371,12 +133,12 @@ void Engine::learn_eval(int num_games)
 	}
 }
 
-void Engine::learn_eval_NN(int num_games, double time_limit)
+void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 {
 	uint64_t c = 0;
 	Clock timer;
 	timer.Start();
-	for (int i = 0; i < num_games; i++)
+	for (uint64_t i = 0; i < num_games; i++)
 	{
 		printf("Game: %d\n", i + 1);
 		CurrentPos.setStartPos();
@@ -430,19 +192,19 @@ void Engine::learn_eval_NN(int num_games, double time_limit)
 				moveToTensor(m, &d->move);
 
 				DBCounter++;
-				if (DBCounter == DATABASE_SIZE)
+				if (DBCounter == DATABASE_MAX_SIZE)
 				{
 					DBCounter = 0;
 					printf("Counter reset\n");
 				}
 
-				if (DBSize < DATABASE_SIZE)
+				if (DBSize < DATABASE_MAX_SIZE)
 				{
 					DBSize++;
 				}
 			}
 
-			if (DBSize >= DATABASE_SIZE && c % 64 == 0)
+			if (DBSize >= DATABASE_MAX_SIZE && c % 64 == 0)
 			{
 				//printf("EPOCH\n");
 				for (int epoch = 0; epoch < 100; epoch++)
@@ -460,7 +222,7 @@ void Engine::learn_eval_NN(int num_games, double time_limit)
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += mNet->train(InputTensor, nullptr, &OutputEvalTensor);
+							error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
 							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 						}
 					}
@@ -481,33 +243,134 @@ void Engine::learn_eval_NN(int num_games, double time_limit)
 	}
 }
 
-uint64_t Engine::perft(int depth)
+void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 {
-	if (depth == 0) return 1;
+	uint64_t c = 0;
+	Clock timer;
+	timer.Start();
 
-	if (CurrentPos.getGameStatus() != STATUS_NOTOVER)
+	int epsilon = 75;
+
+	for (uint64_t i = 0; i < num_games; i++)
 	{
-		return 0;
+		printf("Game: %d\n", i + 1);
+		CurrentPos.setStartPos();
+		while (true)
+		{
+			timer.Stop();
+			if (timer.ElapsedSeconds() >= time_limit)
+				return;
+
+			Move m = createNullMove(CurrentPos.EPSquare);
+			int eval = 0;
+
+			//Make a move
+			int r1 = rand() % 100;
+			if (r1 < epsilon)
+			{
+				std::vector<Move> moves;
+				moves.reserve(128);
+				CurrentPos.generateMoves(moves);
+
+				m = moves[rand() % moves.size()];
+				assert(m.isNullMove() == false);
+
+				eval = LeafEval_NN();
+				if (CurrentPos.Turn == COLOR_BLACK)
+				{
+					eval = -eval;
+				}
+			}
+			else
+			{
+				Bitset hash = CurrentPos.HashKey;
+
+				GoReturn go = go_alphabeta(4 + (rand() % 2));
+				m = go.m;
+				eval = LeafEval_NN();
+				if (CurrentPos.Turn == COLOR_BLACK)
+				{
+					eval = -eval;
+				}
+				assert(m.isNullMove() == false);
+				assert(CurrentPos.HashKey == hash);
+			}
+
+
+			//Save position
+			Data* d = &Database[DBCounter];
+			d->pos.copyFromPosition(CurrentPos);
+			d->eval = eval;
+			moveToTensor(m, &d->move);
+
+			DBCounter++;
+			if (DBCounter == DATABASE_MAX_SIZE)
+			{
+				DBCounter = 0;
+				printf("Counter reset\n");
+			}
+
+			if (DBSize < DATABASE_MAX_SIZE)
+			{
+				DBSize++;
+			}
+
+
+			CurrentPos.makeMove(m);
+			if (CurrentPos.getGameStatus() != STATUS_NOTOVER)
+			{
+				break;
+			}
+			c++;
+		}
+
+	
+		//Train
+		int num_epochs = 100;
+		int num_runs = 1;
+		Float error = 0;
+		for (int epoch = 0; epoch < num_epochs; epoch++)
+		{
+			error = 0;
+			for (int batch = 0; batch < DBSize / BatchSize; batch++)
+			{
+				for (uint64_t i = 0; i < BatchSize; i++)
+				{
+					size_t id = batch*BatchSize + i;
+					memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
+					//memcpy(&OutputMoveTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
+					OutputEvalTensor(i) = Database[id].eval / 100.0;
+				}
+				for (int run = 0; run < num_runs; run++)
+				{
+					error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
+					updateVariables_TD(BatchSize);
+				}
+			}
+			if (DBSize%BatchSize != 0) //last batch
+			{
+				for (uint64_t i = 0; i < DBSize%BatchSize; i++)
+				{
+					size_t id = DBSize - DBSize%BatchSize + i;
+					memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
+					//memcpy(&OutputMoveTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
+					OutputEvalTensor(i) = Database[id].eval / 100.0;
+				}
+				for (int run = 0; run < num_runs; run++)
+				{
+					error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
+					updateVariables_TD(DBSize%BatchSize);
+				}
+			}
+		}
+		printf("Final error: %f, avg: %f\n", error, error / (BatchSize * DBSize));
 	}
+}
 
-	uint64_t count = 0;
-	std::vector<Move> vec;
-	vec.reserve(128);
-	CurrentPos.generateMoves(vec);
-
-	auto Key = CurrentPos.HashKey;
-	auto os = CurrentPos.OccupiedSq;
-
-	for (unsigned int i = 0; i < vec.size(); i++)
+void Engine::updateVariables_TD(uint64_t batch_size)
+{
+	for (uint64_t i = 0; i < DBSize; i++)
 	{
-		Move m = vec[i];
-		CurrentPos.makeMove(m);
-		count += perft(depth-1);
-		CurrentPos.unmakeMove(m);
+
 	}
-
-	assert(Key == CurrentPos.HashKey);
-	assert(os == CurrentPos.OccupiedSq);
-
-	return count;
 }

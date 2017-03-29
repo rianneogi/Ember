@@ -29,6 +29,7 @@
     <ClCompile Include="Net.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="PositionNN.cpp" />
+    <ClCompile Include="Search.cpp" />
     <ClCompile Include="TranspositionTable.cpp" />
     <ClCompile Include="UCI.cpp" />
   </ItemGroup>

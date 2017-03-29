@@ -19,7 +19,7 @@ int main()
 	e.mNet->load(path);
 	printf("Starting training\n");
 	
-	e.learn_eval_NN(25000, 600);
+	e.learn_eval_NN(25000, 8*60*60);
 	
 	printf("Saving weights\n");
 	e.mNet->save(path);
@@ -37,31 +37,11 @@ int main()
 	e.CurrentPos.display(0);
 	printf("%d %d\n", e.LeafEval_NN(), e.LeafEval());
 	_getch();
-
-	//Move m = e.go();
-	//printf("%s\n", m.toString().c_str());
 #else
 	UCI uci;
 	uci.Ember.mNet->load(path);
 	uci.run_uci();
 #endif
-
-	/*Engine e;
-	e.CurrentPos.display(0);
-
-	std::vector<Move> vec;
-	e.CurrentPos.generateMoves(vec);
-	printBitset(e.CurrentPos.Pieces[COLOR_WHITE][PIECE_PAWN]);
-	for (int i = 0; i < vec.size(); i++)
-	{
-		printf("%s\n", vec[i].toString());
-	}
-
-	for (int i = 1; i < 7; i++)
-	{
-		printf("%d\n", e.perft(i));
-	}*/
-	//_getch();
 
 	return 0;
 }

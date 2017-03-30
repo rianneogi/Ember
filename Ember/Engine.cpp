@@ -261,13 +261,19 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 	timer.Start();
 
 	int epsilon = 15;
+	int my_side = 0;
+
+	float wins = 0;
 
 	for (uint64_t i = 0; i < num_games; i++)
 	{
 		printf("Game: %d\n", i + 1);
+		if (i != 0)
+			printf("wr: %f\n", (wins*1.0) / i);
 		CurrentPos.setStartPos();
 		DBSize = 0;
 		DBCounter = 0;
+		my_side = (my_side + 1) % 2;
 		while (true)
 		{
 			timer.Stop();
@@ -279,7 +285,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 
 			//Make a move
 			int r1 = rand() % 100;
-			if (r1 < epsilon)
+			if (r1 < epsilon && CurrentPos.Turn != my_side)
 			{
 				std::vector<Move> moves;
 				moves.reserve(128);
@@ -287,6 +293,8 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 
 				m = moves[rand() % moves.size()];
 				assert(m.isNullMove() == false);
+
+				//GoReturn go = go_alphabeta(2);
 
 				eval = LeafEval_NN() / 100.0;
 				if (CurrentPos.Turn == COLOR_BLACK)
@@ -298,9 +306,9 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 			{
 				Bitset hash = CurrentPos.HashKey;
 
-				GoReturn go = go_alphabeta(4 + (rand() % 2));
+				GoReturn go = go_alphabeta(2);
 				m = go.m;
-				eval = LeafEval_NN() / 100.0;
+				eval = go.eval / 100.0;
 				if (CurrentPos.Turn == COLOR_BLACK)
 				{
 					eval = -eval;
@@ -311,27 +319,38 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 
 
 			//Save position
-			Data* d = &Database[DBCounter];
-			d->pos.copyFromPosition(CurrentPos);
-			d->eval = eval;
-			moveToTensor(m, &d->move);
-
-			DBCounter++;
-			if (DBCounter == DATABASE_MAX_SIZE)
+			if (my_side == CurrentPos.Turn)
 			{
-				DBCounter = 0;
-				printf("Counter reset: %d\n", CurrentPos.movelist.size());
-			}
+				Data* d = &Database[DBCounter];
+				d->pos.copyFromPosition(CurrentPos);
+				d->eval = eval;
+				moveToTensor(m, &d->move);
+				//assert(abs(eval) != 100);
 
-			if (DBSize < DATABASE_MAX_SIZE)
-			{
-				DBSize++;
-			}
+				DBCounter++;
+				if (DBCounter == DATABASE_MAX_SIZE)
+				{
+					DBCounter = 0;
+					printf("Counter reset: %d\n", CurrentPos.movelist.size());
+				}
 
+				if (DBSize < DATABASE_MAX_SIZE)
+				{
+					DBSize++;
+				}
+			}
+			
 			assert(m.isNullMove() == false);
 			CurrentPos.makeMove(m);
-			if (CurrentPos.getGameStatus() != STATUS_NOTOVER || CurrentPos.movelist.size()>100)
+			int status = CurrentPos.getGameStatus();
+			if (status != STATUS_NOTOVER || CurrentPos.movelist.size()>100)
 			{
+				if (status == STATUS_WHITEMATED && my_side == COLOR_BLACK)
+					wins+=1;
+				if (status == STATUS_BLACKMATED && my_side == COLOR_WHITE)
+					wins += 1;
+				if (isStatusDraw(status))
+					wins += 0.5;
 				break;
 			}
 			c++;
@@ -376,31 +395,42 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				}
 			}
 		}
-		printf("Final error: %f, avg: %f\n", error, error / (BatchSize * DBSize));
+		printf("Final error: %f, avg: %f, movecount: %d\n", error, error / (DBSize), CurrentPos.movelist.size());
 	}
+}
+
+inline Float sign(Float f)
+{
+	return (f > 0.0 ? 1.0 : (f == 0.0 ? 0.0 : -1.0));
 }
 
 void Engine::updateVariables_TD(uint64_t batch_size)
 {
-	float gamma = 0.9;
-	float learnin_rate = 0.00005;
+	Float gamma = 0.9;
+	Float learnin_rate = 0.00005;
+	Float avg_change = 0.0;
+	uint64_t count = 0;
 	for (uint64_t i = 0; i < DBSize-1; i++)
 	{
-		float sum = 0.0;
-		float current_gamma = 1.0;
+		Float sum = 0.0;
+		Float current_gamma = 0.1;
 		for (uint64_t j = i; j < DBSize; j++)
 		{
 			sum += current_gamma*(Database[j+1].eval - Database[j].eval);
 			current_gamma *= gamma;
 		}
-		printf("sum: %f, eval: %f\n", sum, Database[i].eval);
+		printf("sum: %f, move: %s, eval: %f, diff: %f\n", sum, tensorToMove(&Database[i].move).toString(),Database[i].eval, Database[i + 1].eval - Database[i].eval);
 		const Optimizer* opt = NetTrain->mBoard->mOptimizer;
 		for (size_t j = 0; j < opt->Variables.size(); j++)
 		{
 			for (uint64_t k = 0; k < opt->Variables[j]->Delta.mSize; k++)
 			{
-				opt->Variables[j]->Data(k) -= learnin_rate*opt->Variables[j]->Delta(k)*sum;
+				opt->Variables[j]->Data(k) += learnin_rate*(opt->Variables[j]->Delta(k))*sum;
+				avg_change += abs(learnin_rate*opt->Variables[j]->Delta(k)*sum);
+				count++;
 			}
 		}
 	}
+	printf("avg change: %f\n", avg_change / count);
+	NetPlay->mBoard->copy_variables(NetTrain->mBoard);
 }

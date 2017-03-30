@@ -52,3 +52,4 @@ public:
 };
 
 void moveToTensor(Move m, Tensor* t);
+Move tensorToMove(Tensor* tensor);

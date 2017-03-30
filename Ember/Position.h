@@ -73,3 +73,8 @@ inline Bitset getQueenAttacks(int sq, Bitset occ)
 
 std::string getStringToken(std::string str, char delimiter, int token);
 int getStringTokenPosition(std::string str, char delimiter, int token);
+
+inline bool isStatusDraw(int status)
+{
+	return (status == STATUS_3FOLDREP || status == STATUS_INSUFFICIENTMAT || status == STATUS_STALEMATE);
+}

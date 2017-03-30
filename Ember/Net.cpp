@@ -92,3 +92,21 @@ void moveToTensor(Move m, Tensor* t)
 	t->operator()(0, m.getFrom()) = 1;
 	t->operator()(1, m.getTo()) = 1;
 }
+
+Move tensorToMove(Tensor* tensor)
+{
+	int t, f;
+	for (int i = 0; i < 64; i++)
+	{
+		if (tensor->operator()(0, i) == 1)
+		{
+			f = i;
+		}
+		if (tensor->operator()(1, i) == 1)
+		{
+			t = i;
+		}
+	}
+	Move m(f, t, 0, 0, 0, 0, 0, 0, 0, 0);
+	return m;
+}

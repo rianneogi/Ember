@@ -19,7 +19,7 @@ int main()
 	e.load_nets(path);
 	printf("Starting training\n");
 	
-	e.learn_eval_TD(100, 3*60);
+	e.learn_eval_TD(1000, 3*60);
 	
 	printf("Saving weights\n");
 	e.NetTrain->save(path);
@@ -39,7 +39,7 @@ int main()
 	_getch();
 #else
 	UCI uci;
-	uci.Ember.mNet->load(path);
+	uci.Ember.load_nets(path);
 	uci.run_uci();
 #endif
 

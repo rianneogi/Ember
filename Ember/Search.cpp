@@ -34,17 +34,18 @@ GoReturn Engine::go_alphabeta(int depth)
 	//assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
 	//assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
 	//assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
+	assert(moves.size() > 0);
 	for (size_t i = 0; i < moves.size(); i++)
 	{
-		//printf("Move: %s\n", moves[i].toString());
-		CurrentPos.makeMove(moves[i]);
+		Move m = getNextMove(moves, i, 0);
+		CurrentPos.makeMove(m);
 		int score = -AlphaBeta(-CONST_INF, CONST_INF, depth - 1, 1);
-		CurrentPos.unmakeMove(moves[i]);
-
+		CurrentPos.unmakeMove(m);
+		assert(score >= -CONST_INF && score <= CONST_INF);
 		if (score >= bestscore)
 		{
 			bestscore = score;
-			bestmove = moves[i];
+			bestmove = m;
 		}
 	}
 	return GoReturn(bestmove, bestscore);
@@ -81,7 +82,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	if (depth == 0)
 	{
 #ifdef TRAINING_BUILD
-		return LeafEval_MatOnly();
+		return LeafEval_NN();
 #else
 		return LeafEval_NN();
 #endif

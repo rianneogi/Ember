@@ -13,16 +13,9 @@ int getNPS(int nodes, int milliseconds)
 
 Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 {
-	/*Clock timer;
-	timer.Start();
-	GoReturn go = go_alphabeta(4);
-	timer.Stop();
-	if (print)
-	{
-		std::cout << "info score cp " << go.eval << " depth " << 4 << " nodes " << NodeCount <<
-			" nps " << getNPS(NodeCount, timer.ElapsedMilliseconds()) << std::endl;
-	}
-	return go.m;*/
+	NodeCount = 0;
+	BetaCutoffCount = 0;
+	BetaCutoffValue = 0;
 
 	int MAXDEPTH = 100;
 	TimeMode = mode;
@@ -77,6 +70,8 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 		std::cout << "info score cp " << go.eval << " depth " << depth << " nodes " << NodeCount <<
 			" nps " << getNPS(NodeCount, Timer.ElapsedMilliseconds()) <<
 			" pv " << bestmove.toString() << std::endl;
+		std::cout << "info string Betacuff ratio: " << ((BetaCutoffCount*1.0) / NodeCount) << std::endl;
+		std::cout << "info string Betacuff movecount: " << ((BetaCutoffValue*1.0) / BetaCutoffCount) << std::endl;
 
 		assert(go.eval >= -CONST_INF && go.eval <= CONST_INF);
 		assert(bestmove.isNullMove() == false);
@@ -86,7 +81,6 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 
 SearchResult Engine::go_alphabeta(int depth)
 {
-	NodeCount = 0;
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
@@ -219,6 +213,8 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 				}
 			}
 
+			BetaCutoffCount++;
+			BetaCutoffValue += (i + 1);
 			return score;
 		}
 		else if (score > bestscore)

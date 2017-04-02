@@ -37,6 +37,8 @@ Engine::Engine()
 
 	NodeCount = 0;
 	SortNetCount = 0;
+	BetaCutoffCount = 0;
+	BetaCutoffValue = 0;
 }
 
 Engine::~Engine()

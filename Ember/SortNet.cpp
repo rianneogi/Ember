@@ -22,7 +22,7 @@ void SortNet::init_net()
 	Input = mBoard->newBlob(make_shape(BatchSize, 1, 64 + 64 + 6 + 7 + 7));
 	Output = mBoard->newBlob(make_shape(BatchSize, 1, 1));
 
-	mBoard->setOptimizer(new AdamOptimizer(0.001));
+	mBoard->setOptimizer(new AdamOptimizer(1));
 
 	mBoard->addNeuron(new FullyConnectedNeuron(Input, Output, 1));
 

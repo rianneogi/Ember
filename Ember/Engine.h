@@ -62,6 +62,8 @@ public:
 	TranspositionTable* Table;
 
 	uint64_t NodeCount;
+	uint64_t BetaCutoffCount;
+	uint64_t BetaCutoffValue;
 
 	Engine();
 	~Engine();

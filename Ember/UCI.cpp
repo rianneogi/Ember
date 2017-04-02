@@ -484,17 +484,17 @@ void UCI::run_uci()
 			t.Stop();
 			cout << "Count: " << perft << ", Time: " << t.ElapsedMilliseconds() << ", NPS: " << ((perft * 1000) / t.ElapsedMilliseconds()) << endl;
 		}
-		/*else if (s == "movesort")
+		else if (s == "movesort")
 		{
 			std::vector<Move> vec;
 			Ember.CurrentPos.generateMoves(vec);
 			for (int i = 0; i < vec.size(); i++)
 			{
-				Move bm = e1.getHighestScoringMove(vec, i);
-				cout << bm.toString() << " " << e1.getMoveScore(bm) << endl;
+				Move bm = Ember.getNextMove_NN(vec, i, 0);
+				cout << bm.toString() << endl;
 			}
 		}
-		else if (s == "pv")
+		/*else if (s == "pv")
 		{
 			cout << "ply = " << e1.ply << endl;
 			cout << "pv size: " << e1.PrincipalVariation.size() << endl;

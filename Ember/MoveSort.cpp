@@ -190,13 +190,13 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 {
 	int bigmoveid = current_move;
 	Move bigmove = moves.at(current_move);
-	long long bigscore = getMoveScore(bigmove, ply);
-	long long x;
-	for (int i = current_move + 1; i<moves.size(); i++)
+	Float bigscore = -CONST_INF;
+	Float x;
+	for (int i = current_move; i<moves.size(); i++)
 	{
 		//x = getMoveScore(moves.at(i), ply);
 		
-		moveToTensorPtr(moves[i], &MoveTensor(i, 0));
+		moveToTensorPtr(moves[i], &MoveTensor(i - current_move, 0));
 		//NetSort->mBoard->forward(MoveTensor);
 		//x = NetSort->Output->Data(0);
 
@@ -215,25 +215,26 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 		//}
 	}
 	NetSort->mBoard->forward(MoveTensor);
-	for (int i = 0; i < moves.size() - current_move - 1; i++)
+	for (int i = 0; i < moves.size() - current_move; i++)
 	{
-		if (moves[current_move + 1 + i] == Table->getBestMove(CurrentPos.HashKey))
+		/*if (moves[current_move + 1 + i] == Table->getBestMove(CurrentPos.HashKey))
 		{
 			bigscore = x;
 			bigmoveid = i;
 			bigmove = moves.at(i);
 			break;
-		}
+		}*/
 		x = NetSort->Output->Data(i);
 		if (x>bigscore)
 		{
 			bigscore = x;
-			bigmoveid = i;
-			bigmove = moves.at(i);
+			bigmoveid = i + current_move;
+			bigmove = moves.at(i + current_move);
 		}
 	}
 	Move m = bigmove; //swap move
 	moves.at(bigmoveid) = moves.at(current_move);
 	moves.at(current_move) = m;
+	//printf("%f\n", bigscore);
 	return m;
 }

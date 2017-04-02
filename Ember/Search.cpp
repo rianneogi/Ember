@@ -25,7 +25,7 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 	return go.m;*/
 
 	int MAXDEPTH = 100;
-
+	TimeMode = mode;
 	AllocatedTime = 1;
 	uint64_t mytime = 1;
 	uint64_t opptime = 1;
@@ -52,8 +52,8 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 		MAXDEPTH = wtime;
 	}
 
-	std::cout << "info Allocated time: " << AllocatedTime << std::endl;
-	Move bestmove = createNullMove(CurrentPos.EPSquare);
+	std::cout << "info string Allocated time: " << AllocatedTime << std::endl;
+	Move bestmove = CONST_NULLMOVE;
 
 	int initial_move_number = CurrentPos.movelist.size();
 
@@ -77,6 +77,9 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 		std::cout << "info score cp " << go.eval << " depth " << depth << " nodes " << NodeCount <<
 			" nps " << getNPS(NodeCount, Timer.ElapsedMilliseconds()) <<
 			" pv " << bestmove.toString() << std::endl;
+
+		assert(go.eval >= -CONST_INF && go.eval <= CONST_INF);
+		assert(bestmove.isNullMove() == false);
 	}
 	return bestmove;
 }
@@ -92,11 +95,15 @@ SearchResult Engine::go_alphabeta(int depth)
 	//assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
 	//assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
 	//assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
-	assert(moves.size() > 0);
+	bool found_legal = false;
 	for (size_t i = 0; i < moves.size(); i++)
 	{
 		Move m = getNextMove(moves, i, 0);
-		CurrentPos.makeMove(m);
+		if (!CurrentPos.tryMove(m))
+		{
+			continue;
+		}
+		found_legal = true;
 		int score = -AlphaBeta(-CONST_INF, CONST_INF, depth - 1, 1);
 		CurrentPos.unmakeMove(m);
 		assert(score >= -CONST_INF && score <= CONST_INF);
@@ -106,6 +113,8 @@ SearchResult Engine::go_alphabeta(int depth)
 			bestmove = m;
 		}
 	}
+	assert(found_legal);
+	assert(bestmove.isNullMove() == false);
 	return SearchResult(bestmove, bestscore);
 }
 
@@ -138,27 +147,23 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	NodeCount++;
 	if (NodeCount % 1028 == 0)
 	{
-		checkup();
+		if(TimeMode==MODE_MOVETIME || TimeMode==MODE_DEFAULT)
+			checkup();
 	}
-
+	
 	if (depth == 0)
 	{
 #ifdef TRAINING_BUILD
-		return LeafEval_NN();
+		return int(LeafEval_NN());
 #else
 		return LeafEval_NN();
 #endif
 	}
-
-
-	std::vector<Move> moves;
-	moves.reserve(128);
-	CurrentPos.generateMoves(moves);
-
-	//assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
-	//assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
-	//assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
-
+	
+	assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
+	assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
+	assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
+	
 	int probe = Table->Probe(CurrentPos.HashKey, depth, alpha, beta);
 	if (probe != CONS_TTUNKNOWN)
 	{
@@ -168,33 +173,27 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		}
 	}
 
-	if (moves.size() == 0)
-	{
-		int status = CurrentPos.getGameStatus();
-		if (status != STATUS_NOTOVER)
-		{
-			if (status == STATUS_STALEMATE || status == STATUS_INSUFFICIENTMAT || status == STATUS_3FOLDREP)
-			{
-				return 0;
-			}
-			else if (status == STATUS_WHITEMATED || status == STATUS_BLACKMATED)
-			{
-				return -CONST_INF;
-			}
-		}
-	}
-
+	std::vector<Move> moves;
+	moves.reserve(128);
+	CurrentPos.generateMoves(moves);
+	
 	int bestscore = -CONST_INF;
 	int bound = TT_ALPHA;
 	Move bestmove = CONST_NULLMOVE;
+	bool found_legal = false;
 	for (int i = 0; i < moves.size(); i++)
 	{
 		Move m = getNextMove(moves, i, ply);
-
-		CurrentPos.makeMove(m);
+		
+		if (!CurrentPos.tryMove(m))
+		{
+			continue;
+		}
+		
+		found_legal = true;
 		int score = -AlphaBeta(-beta, -alpha, depth - 1, ply + 1);
+		
 		CurrentPos.unmakeMove(m);
-
 		if (score >= beta)
 		{
 			if (noMaterialGain(m))
@@ -229,6 +228,16 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 			bestmove = m;
 		}
 	}
+	
+	if (!found_legal)
+	{
+		if (CurrentPos.underCheck(CurrentPos.Turn))
+		{
+			return -CONST_INF;
+		}
+		return 0;
+	}
+
 	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, bestmove); //not storing best move for now
 	return bestscore;
 }

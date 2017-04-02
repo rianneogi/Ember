@@ -254,7 +254,7 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 
 void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 {
-	//NetTrain->mBoard->mUseOptimizer = false;
+	TimeMode = MODE_DEPTH;
 
 	uint64_t c = 0;
 	Clock timer;
@@ -290,11 +290,16 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 			int r1 = rand() % 100;
 			if (r1 < epsilon && CurrentPos.Turn != my_side)
 			{
+				//printf("rand\n");
 				std::vector<Move> moves;
 				moves.reserve(128);
 				CurrentPos.generateMoves(moves);
 
 				m = moves[rand() % moves.size()];
+				while (!CurrentPos.isMoveLegal(m))
+				{
+					m = moves[rand() % moves.size()];
+				}
 				assert(m.isNullMove() == false);
 
 				//GoReturn go = go_alphabeta(2);
@@ -307,9 +312,11 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 			}
 			else
 			{
+				//printf("n\n");
 				Bitset hash = CurrentPos.HashKey;
 
 				SearchResult go = go_alphabeta(2);
+				
 				m = go.m;
 				eval = go.eval / 100.0;
 				if (CurrentPos.Turn == COLOR_BLACK)

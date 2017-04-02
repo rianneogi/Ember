@@ -38,11 +38,20 @@ public:
 	void generateMoves(std::vector<Move>& moves);
 	
 	void makeMove(const Move& m);
+	bool tryMove(const Move& m);
 	void unmakeMove(const Move& m);
 
 	void takebackMove();
 
-	bool isLegalMove(const Move& m) const;
+	bool isMoveLegal(const Move& m)
+	{
+		if (tryMove(m))
+		{
+			unmakeMove(m);
+			return true;
+		}
+		return false;
+	}
 	bool isAttacked(int turn, int n) const;
 	bool underCheck(int turn) const;
 

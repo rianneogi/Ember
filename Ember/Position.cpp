@@ -401,6 +401,18 @@ void Position::makeMove(Move const& m)
 	HashKey ^= TT_ColorKey;
 }
 
+bool Position::tryMove(const Move& m)
+{
+	assert(!underCheck(getOpponent(Turn)));
+	makeMove(m);
+	if (underCheck(getOpponent(Turn)))
+	{
+		unmakeMove(m);
+		return false;
+	}
+	return true;
+}
+
 void Position::unmakeMove(Move const& m)
 {
 	/*if(DEBUG)
@@ -604,13 +616,13 @@ void Position::takebackMove()
 
 void Position::addMove(std::vector<Move>& vec, Move const& m)
 {
-	makeMove(m);
-	if(!underCheck(getOpponent(Turn)))
-	{
-		vec.push_back(m);
+	//makeMove(m);
+	//if (!underCheck(getOpponent(Turn)))
+	//{
+	vec.push_back(m);
 	//printf("added move %s\n", m.toString());
-	}
-	unmakeMove(m);
+	//}
+	//unmakeMove(m);
 }
 
 void Position::generateMoves(std::vector<Move>& moves)
@@ -943,7 +955,18 @@ int Position::getGameStatus()
 	std::vector<Move> vec;
 	vec.reserve(128);
 	generateMoves(vec);
-	if (vec.size() == 0)
+	bool found_legal = false;
+	for (int i = 0; i < vec.size(); i++)
+	{
+		if (tryMove(vec[i]))
+		{
+			found_legal = true;
+			unmakeMove(vec[i]);
+			break;
+		}
+	}
+
+	if (!found_legal)
 	{
 		if (underCheck(Turn) && Turn == COLOR_WHITE)
 		{

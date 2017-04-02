@@ -38,6 +38,7 @@ public:
 
 	Clock Timer;
 	uint64_t AllocatedTime;
+	int TimeMode;
 
 	Net* NetPlay;
 	Net* NetTrain;

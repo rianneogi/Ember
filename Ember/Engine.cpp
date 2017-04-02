@@ -3,12 +3,12 @@
 const int DATABASE_MAX_SIZE = 6400;
 const int CONST_INF = 10000;
 
-const int BATCH_SIZE = 8;
+const int BATCH_SIZE = 128;
 
 Engine::Engine()
 	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 8, 8, 14)),
 	OutputMoveTensor(make_shape(BATCH_SIZE, 2, 64)), OutputEvalTensor(make_shape(BATCH_SIZE, 1)),
-	MoveTensor(make_shape(64, 64)), SortTensor(make_shape(1, 1))
+	MoveTensor(make_shape(BATCH_SIZE, 64, 64)), SortTensor(make_shape(BATCH_SIZE, 1, 1))
 {
 	Database = new Data[DATABASE_MAX_SIZE];
 	DBCounter = 0;
@@ -16,7 +16,7 @@ Engine::Engine()
 
 	NetPlay = new Net(1);
 	NetTrain = new Net(BatchSize);
-	NetSort = new SortNet();
+	NetSort = new SortNet(BatchSize);
 
 	for (int i = 0; i<2; i++)
 	{

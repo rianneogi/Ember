@@ -10,7 +10,10 @@ public:
 	Blob* Input;
 	Blob* Output;
 
+	uint64_t BatchSize;
+
 	SortNet();
+	SortNet(uint64_t batch_size);
 	~SortNet();
 
 	void init_net();

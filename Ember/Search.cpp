@@ -194,7 +194,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 			//		}
 			//	}
 			//}
-			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m); //not storing best move for now
+			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m);
 
 			moveToTensor(m, &MoveTensor);
 			SortTensor(0, 0) = 1.0;
@@ -234,7 +234,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		return 0;
 	}
 
-	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, bestmove); //not storing best move for now
+	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, bestmove); 
 	return bestscore;
 }
 

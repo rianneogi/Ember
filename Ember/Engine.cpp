@@ -180,7 +180,7 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 			{
 				Bitset hash = CurrentPos.HashKey;
 
-				GoReturn go = go_alphabeta(4 + (rand()%2));
+				SearchResult go = go_alphabeta(4 + (rand()%2));
 				m = go.m;
 				eval = go.eval;
 				if (CurrentPos.Turn == COLOR_BLACK)
@@ -309,7 +309,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 			{
 				Bitset hash = CurrentPos.HashKey;
 
-				GoReturn go = go_alphabeta(2);
+				SearchResult go = go_alphabeta(2);
 				m = go.m;
 				eval = go.eval / 100.0;
 				if (CurrentPos.Turn == COLOR_BLACK)

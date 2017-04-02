@@ -71,7 +71,7 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 	Timer.Start();
 	for (int depth = 1; depth < MAXDEPTH; depth++)
 	{
-		GoReturn go = go_alphabeta(depth);
+		SearchResult go = go_alphabeta(depth);
 		bestmove = go.m;
 
 		std::cout << "info score cp " << go.eval << " depth " << depth << " nodes " << NodeCount <<
@@ -81,7 +81,7 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 	return bestmove;
 }
 
-GoReturn Engine::go_alphabeta(int depth)
+SearchResult Engine::go_alphabeta(int depth)
 {
 	NodeCount = 0;
 	std::vector<Move> moves;
@@ -106,7 +106,7 @@ GoReturn Engine::go_alphabeta(int depth)
 			bestmove = m;
 		}
 	}
-	return GoReturn(bestmove, bestscore);
+	return SearchResult(bestmove, bestscore);
 }
 
 Move Engine::go_negamax(int depth)

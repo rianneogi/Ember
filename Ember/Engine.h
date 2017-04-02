@@ -2,7 +2,7 @@
 
 #include "Net.h"
 
-//#define TRAINING_BUILD
+#define TRAINING_BUILD
 
 extern const int CONST_INF; 
 extern const int DATABASE_MAX_SIZE;
@@ -20,9 +20,9 @@ public:
 	Float eval;
 };
 
-struct GoReturn
+struct SearchResult
 {
-	GoReturn(Move move, int score) : m(move), eval(score) {}
+	SearchResult(Move move, int score) : m(move), eval(score) {}
 
 	Move m;
 	int eval;
@@ -62,7 +62,7 @@ public:
 	//Search
 	Move go(int mode, int wtime, int btime, int winc, int binc, bool print);
 
-	GoReturn go_alphabeta(int depth);
+	SearchResult go_alphabeta(int depth);
 	Move go_negamax(int depth);
 	int AlphaBeta(int alpha, int beta, int depth, int ply);
 	int Negamax(int depth, int ply);

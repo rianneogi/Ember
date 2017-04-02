@@ -196,17 +196,28 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 	{
 		//x = getMoveScore(moves.at(i), ply);
 		
-		moveToTensor(moves[i], &MoveTensor);
-		NetSort->mBoard->forward(MoveTensor);
-		x = NetSort->Output->Data(0);
+		moveToTensorPtr(moves[i], &MoveTensor(i, 0));
+		//NetSort->mBoard->forward(MoveTensor);
+		//x = NetSort->Output->Data(0);
 
-		//if (x >= 5000000) //pv or hash move found
+		////if (x >= 5000000) //pv or hash move found
+		////{
+		////	bigscore = x;
+		////	bigmoveid = i;
+		////	bigmove = moves.at(i);
+		////	break;
+		////}
+		//if (x>bigscore)
 		//{
 		//	bigscore = x;
 		//	bigmoveid = i;
 		//	bigmove = moves.at(i);
-		//	break;
 		//}
+	}
+	NetSort->mBoard->forward(MoveTensor);
+	for (int i = 0; i < moves.size() - current_move - 1; i++)
+	{
+		x = NetSort->Output->Data(i);
 		if (x>bigscore)
 		{
 			bigscore = x;

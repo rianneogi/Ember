@@ -81,6 +81,13 @@ void moveToTensor(Move m, Tensor* t)
 	t->operator()(1, m.getTo()) = 1;
 }
 
+void moveToTensorPtr(Move m, Float* t)
+{
+	memset(t, 0, sizeof(Float) * 64 * 2);
+	t[m.getFrom()] = 1;
+	t[m.getTo() + 64] = 1;
+}
+
 Move tensorToMove(Tensor* tensor)
 {
 	int t, f;

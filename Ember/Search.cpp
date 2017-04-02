@@ -196,17 +196,27 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 			//}
 			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m);
 
-			moveToTensor(m, &MoveTensor);
-			SortTensor(0, 0) = 1.0;
+			moveToTensorPtr(m, &MoveTensor(SortNetCount, 0));
+			SortTensor(SortNetCount, 0) = 1.0;
 
-			NetSort->train(MoveTensor, SortTensor);
+			SortNetCount++;
+			if (SortNetCount >= BatchSize)
+			{
+				NetSort->train(MoveTensor, SortTensor);
+				SortNetCount = 0;
+			}
 
 			for (int j = 0; j < oldmoves.size(); j++)
 			{
-				moveToTensor(oldmoves[j], &MoveTensor);
-				SortTensor(0, 0) = 0.0;
+				moveToTensorPtr(m, &MoveTensor(SortNetCount, 0));
+				SortTensor(SortNetCount, 0) = 0.0;
 
-				NetSort->train(MoveTensor, SortTensor);
+				SortNetCount++;
+				if (SortNetCount >= BatchSize)
+				{
+					NetSort->train(MoveTensor, SortTensor);
+					SortNetCount = 0;
+				}
 			}
 
 			return score;

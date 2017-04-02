@@ -54,6 +54,7 @@ public:
 
 	Tensor MoveTensor;
 	Tensor SortTensor;
+	uint64_t SortNetCount;
 
 	Move KillerMoves[2][100];
 	long HistoryScores[64][64];

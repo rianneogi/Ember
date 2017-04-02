@@ -1,12 +1,13 @@
 #include "SortNet.h"
 
-SortNet::SortNet()
+SortNet::SortNet() : BatchSize(1)
 {
 	init_net();
 }
 
 SortNet::SortNet(uint64_t batch_size) : BatchSize(batch_size)
 {
+	init_net();
 }
 
 SortNet::~SortNet()
@@ -18,7 +19,7 @@ SortNet::~SortNet()
 void SortNet::init_net()
 {
 	mBoard = new Board();
-	Input = mBoard->newBlob(make_shape(BatchSize, 1, 64*64));
+	Input = mBoard->newBlob(make_shape(BatchSize, 1, 2*64));
 	Output = mBoard->newBlob(make_shape(BatchSize, 1, 1));
 
 	mBoard->setOptimizer(new AdamOptimizer(0.001));

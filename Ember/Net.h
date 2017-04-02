@@ -65,4 +65,5 @@ public:
 };
 
 void moveToTensor(Move m, Tensor* t);
+void moveToTensorPtr(Move m, Float* t);
 Move tensorToMove(Tensor* tensor);

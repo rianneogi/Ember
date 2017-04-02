@@ -160,9 +160,9 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 #endif
 	}
 	
-	assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
+	/*assert(popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KING]) != 0);
 	assert(popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KING]) != 0);
-	assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);
+	assert(CurrentPos.underCheck(getOpponent(CurrentPos.Turn)) == false);*/
 	
 	int probe = Table->Probe(CurrentPos.HashKey, depth, alpha, beta);
 	if (probe != CONS_TTUNKNOWN)

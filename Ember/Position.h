@@ -49,16 +49,13 @@ public:
 	void makeMove(const Move& m);
 	bool tryMove(const Move& m)
 	{
+		makeMove(m);
+		if (underCheck(getOpponent(Turn)))
 		{
-			assert(!underCheck(getOpponent(Turn)));
-			makeMove(m);
-			if (underCheck(getOpponent(Turn)))
-			{
-				unmakeMove(m);
-				return false;
-			}
-			return true;
+			unmakeMove(m);
+			return false;
 		}
+		return true;
 	}
 	void unmakeMove(const Move& m);
 

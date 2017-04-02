@@ -334,7 +334,10 @@ uint64_t Engine::perft(int depth)
 	for (unsigned int i = 0; i < vec.size(); i++)
 	{
 		Move m = vec[i];
-		CurrentPos.makeMove(m);
+		if (!CurrentPos.tryMove(m))
+		{
+			continue;
+		}
 		count += perft(depth - 1);
 		CurrentPos.unmakeMove(m);
 	}

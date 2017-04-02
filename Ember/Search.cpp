@@ -197,7 +197,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m);
 
 			moveToTensorPtr(m, &MoveTensor(SortNetCount, 0));
-			SortTensor(SortNetCount, 0) = 1.0;
+			SortTensor(SortNetCount, 0) = depth;
 
 			SortNetCount++;
 			if (SortNetCount >= BatchSize)

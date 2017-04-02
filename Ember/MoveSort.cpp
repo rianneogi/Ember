@@ -217,6 +217,13 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 	NetSort->mBoard->forward(MoveTensor);
 	for (int i = 0; i < moves.size() - current_move - 1; i++)
 	{
+		if (moves[current_move + 1 + i] == Table->getBestMove(CurrentPos.HashKey))
+		{
+			bigscore = x;
+			bigmoveid = i;
+			bigmove = moves.at(i);
+			break;
+		}
 		x = NetSort->Output->Data(i);
 		if (x>bigscore)
 		{

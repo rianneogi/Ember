@@ -188,48 +188,32 @@ void Engine::setKiller(const Move& m, int ply)
 
 Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 {
-	int bigmoveid = current_move;
-	Move bigmove = moves.at(current_move);
-	Float bigscore = -CONST_INF;
-	Float x;
-	for (int i = current_move; i<moves.size(); i++)
+	for (int i = 0; i < moves.size(); i++)
 	{
-		//x = getMoveScore(moves.at(i), ply);
-		
-		moveToTensorPtr(moves[i], &MoveTensor(i - current_move, 0));
-		//NetSort->mBoard->forward(MoveTensor);
-		//x = NetSort->Output->Data(0);
-
-		////if (x >= 5000000) //pv or hash move found
-		////{
-		////	bigscore = x;
-		////	bigmoveid = i;
-		////	bigmove = moves.at(i);
-		////	break;
-		////}
-		//if (x>bigscore)
-		//{
-		//	bigscore = x;
-		//	bigmoveid = i;
-		//	bigmove = moves.at(i);
-		//}
+		moveToTensorPtr(moves[i], &MoveTensor(i,0));
 	}
 	NetSort->mBoard->forward(MoveTensor);
-	for (int i = 0; i < moves.size() - current_move; i++)
+
+	int bigmoveid = current_move;
+	Move bigmove = moves.at(current_move);
+	Float bigscore = NetSort->Output->Data(current_move);
+	Float x;
+	
+	for (int i = current_move+1; i < moves.size(); i++)
 	{
-		/*if (moves[current_move + 1 + i] == Table->getBestMove(CurrentPos.HashKey))
+		if (moves[i] == Table->getBestMove(CurrentPos.HashKey))
 		{
 			bigscore = x;
 			bigmoveid = i;
 			bigmove = moves.at(i);
 			break;
-		}*/
+		}
 		x = NetSort->Output->Data(i);
 		if (x>bigscore)
 		{
 			bigscore = x;
-			bigmoveid = i + current_move;
-			bigmove = moves.at(i + current_move);
+			bigmoveid = i;
+			bigmove = moves.at(i);
 		}
 	}
 	Move m = bigmove; //swap move

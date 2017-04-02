@@ -19,8 +19,8 @@ SortNet::~SortNet()
 void SortNet::init_net()
 {
 	mBoard = new Board();
-	Input = mBoard->newBlob(make_shape(BatchSize, 1, 64 + 64 + 6 + 7 + 7));
-	Output = mBoard->newBlob(make_shape(BatchSize, 1, 1));
+	Input = mBoard->newBlob(make_shape(BatchSize, 64 + 64 + 6 + 7 + 7));
+	Output = mBoard->newBlob(make_shape(BatchSize, 1));
 
 	mBoard->setOptimizer(new AdamOptimizer(1));
 
@@ -41,7 +41,6 @@ void moveToTensorPtr(Move m, Float* t)
 	memset(t, 0, sizeof(Float) * (64 + 64 + 6 + 7 + 7));
 	t[m.getFrom()] = 1;
 	t[64 + m.getTo()] = 1;
-
 	t[128 + m.getMovingPiece()] = 1;
 	t[128 + 6 + getSquare2Piece(m.getCapturedPiece())] = 1;
 	t[128 + 12 + m.getSpecial()] = 1;

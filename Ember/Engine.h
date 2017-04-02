@@ -2,7 +2,9 @@
 
 #include "Net.h"
 
-#define TRAINING_BUILD
+//#define TRAINING_BUILD
+
+extern jmp_buf JumpEnv;
 
 extern const int CONST_INF; 
 extern const int DATABASE_MAX_SIZE;
@@ -69,7 +71,6 @@ public:
 	int Negamax(int depth, int ply);
 
 	uint64_t perft(int depth);
-	void checkup();
 
 	//Evaluation
 	int LeafEval();
@@ -86,5 +87,15 @@ public:
 	void learn_eval_NN(uint64_t num_games, double time_limit);
 	void learn_eval_TD(uint64_t num_games, double time_limit);
 	void updateVariables_TD(uint64_t start, uint64_t batch_size);
+
+
+	void checkup()
+	{
+		Timer.Stop();
+		if (Timer.ElapsedMilliseconds() >= AllocatedTime)
+		{
+			longjmp(JumpEnv, Timer.ElapsedMilliseconds());
+		}
+	}
 };
 

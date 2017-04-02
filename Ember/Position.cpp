@@ -401,18 +401,6 @@ void Position::makeMove(Move const& m)
 	HashKey ^= TT_ColorKey;
 }
 
-bool Position::tryMove(const Move& m)
-{
-	assert(!underCheck(getOpponent(Turn)));
-	makeMove(m);
-	if (underCheck(getOpponent(Turn)))
-	{
-		unmakeMove(m);
-		return false;
-	}
-	return true;
-}
-
 void Position::unmakeMove(Move const& m)
 {
 	/*if(DEBUG)
@@ -609,21 +597,6 @@ void Position::unmakeMove(Move const& m)
 	}*/
 }
 
-void Position::takebackMove()
-{
-	unmakeMove(movelist[movelist.size() - 1]);
-}
-
-void Position::addMove(std::vector<Move>& vec, Move const& m)
-{
-	//makeMove(m);
-	//if (!underCheck(getOpponent(Turn)))
-	//{
-	vec.push_back(m);
-	//printf("added move %s\n", m.toString());
-	//}
-	//unmakeMove(m);
-}
 
 void Position::generateMoves(std::vector<Move>& moves)
 {
@@ -939,12 +912,6 @@ bool Position::isAttacked(int turn, int n) const
 	return false;
 }
 
-bool Position::underCheck(int turn) const
-{
-	unsigned long k = 0;
-	BitscanForward(&k, Pieces[turn][PIECE_KING]);
-	return isAttacked(turn, k);
-}
 
 int Position::getGameStatus()
 {

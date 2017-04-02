@@ -344,12 +344,3 @@ uint64_t Engine::perft(int depth)
 
 	return count;
 }
-
-void Engine::checkup()
-{
-	Timer.Stop();
-	if (Timer.ElapsedMilliseconds() >= AllocatedTime)
-	{
-		longjmp(JumpEnv, Timer.ElapsedMilliseconds());
-	}
-}

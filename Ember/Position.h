@@ -27,7 +27,16 @@ public:
 	Position();
 	~Position();
 
-	void addMove(std::vector<Move>& vec, Move const& m);
+	void addMove(std::vector<Move>& vec, Move const& m)
+	{
+		//makeMove(m);
+		//if (!underCheck(getOpponent(Turn)))
+		//{
+		vec.push_back(m);
+		//printf("added move %s\n", m.toString());
+		//}
+		//unmakeMove(m);
+	}
 
 	void setStartPos();
 	void initializeBitsets();
@@ -38,10 +47,25 @@ public:
 	void generateMoves(std::vector<Move>& moves);
 	
 	void makeMove(const Move& m);
-	bool tryMove(const Move& m);
+	bool tryMove(const Move& m)
+	{
+		{
+			assert(!underCheck(getOpponent(Turn)));
+			makeMove(m);
+			if (underCheck(getOpponent(Turn)))
+			{
+				unmakeMove(m);
+				return false;
+			}
+			return true;
+		}
+	}
 	void unmakeMove(const Move& m);
 
-	void takebackMove();
+	void takebackMove()
+	{
+		unmakeMove(movelist[movelist.size() - 1]);
+	}
 
 	bool isMoveLegal(const Move& m)
 	{
@@ -53,7 +77,12 @@ public:
 		return false;
 	}
 	bool isAttacked(int turn, int n) const;
-	bool underCheck(int turn) const;
+	bool underCheck(int turn) const
+	{
+		unsigned long k = 0;
+		BitscanForward(&k, Pieces[turn][PIECE_KING]);
+		return isAttacked(turn, k);
+	}
 
 	int getGameStatus();
 	bool isRepetition();

@@ -43,7 +43,7 @@ void Net::init_net()
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
 	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
 
-	mBoard->setOptimizer(new AdamOptimizer(0.001));
+	mBoard->setOptimizer(new AdamOptimizer(0.00001));
 
 	mBoard->addNeuron(new Im2ColNeuron(Input, ConvKing, 3, 3));
 	mBoard->addNeuron(new ConvNeuron(ConvKing, FCKing, 1));
@@ -56,7 +56,7 @@ void Net::init_net()
 	mBoard->addNeuron(new LeakyReLUNeuron(OutputEvalFC, Output_Eval, 1));
 
 	//mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Move, nullptr));
-	mBoard->addErrorFunction(new UnitError(Input, Output_Eval));
+	mBoard->addErrorFunction(new L1Error(Input, Output_Eval));
 }
 
 Float Net::train(Tensor inputs, Tensor* output_move, Tensor* output_eval)

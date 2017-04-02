@@ -104,14 +104,14 @@ int Engine::LeafEval_MatOnly()
 	return ret;
 }
 
-int Engine::LeafEval_NN()
+Float Engine::LeafEval_NN()
 {
 	PosNN.copyFromPosition(CurrentPos);
 	//for (uint64_t i = 0; i < BatchSize; i++)
 	//{
 	//	memcpy(&InputTensor(i, 0, 0, 0), PosNN.Squares.mData, sizeof(Float) * 8 * 8 * 14);
 	//}
-	int eval = NetPlay->get_eval(PosNN.Squares) * 100;
+	Float eval = NetPlay->get_eval(PosNN.Squares) * 100;
 	if (CurrentPos.Turn == COLOR_BLACK)
 		eval = -eval;
 	return eval;

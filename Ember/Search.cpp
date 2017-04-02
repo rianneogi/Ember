@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+jmp_buf JumpEnv;
+
 int getNPS(int nodes, int milliseconds)
 {
 	if (milliseconds != 0)
@@ -11,7 +13,7 @@ int getNPS(int nodes, int milliseconds)
 
 Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 {
-	Clock timer;
+	/*Clock timer;
 	timer.Start();
 	GoReturn go = go_alphabeta(4);
 	timer.Stop();
@@ -20,7 +22,63 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 		std::cout << "info score cp " << go.eval << " depth " << 4 << " nodes " << NodeCount <<
 			" nps " << getNPS(NodeCount, timer.ElapsedMilliseconds()) << std::endl;
 	}
-	return go.m;
+	return go.m;*/
+
+	int MAXDEPTH = 100;
+
+	AllocatedTime = 1;
+	uint64_t mytime = 1;
+	uint64_t opptime = 1;
+	if (mode == MODE_MOVETIME)
+	{
+		AllocatedTime = wtime;
+	}
+	else
+	{
+		if (CurrentPos.Turn == COLOR_WHITE)
+		{
+			mytime = wtime;
+			opptime = btime;
+		}
+		else
+		{
+			mytime = btime;
+			opptime = wtime;
+		}
+		AllocatedTime = std::max((uint64_t)1, mytime / 15);
+	}
+	if (mode == MODE_DEPTH)
+	{
+		MAXDEPTH = wtime;
+	}
+
+	std::cout << "info Allocated time: " << AllocatedTime << std::endl;
+	Move bestmove = createNullMove(CurrentPos.EPSquare);
+
+	int initial_move_number = CurrentPos.movelist.size();
+
+	int jmpreturn = setjmp(JumpEnv);
+	if (jmpreturn != 0)
+	{
+		while (CurrentPos.movelist.size() > initial_move_number)
+		{
+			CurrentPos.takebackMove();
+		}
+		return bestmove;
+	}
+
+	Timer.Reset();
+	Timer.Start();
+	for (int depth = 1; depth < MAXDEPTH; depth++)
+	{
+		GoReturn go = go_alphabeta(depth);
+		bestmove = go.m;
+
+		std::cout << "info score cp " << go.eval << " depth " << depth << " nodes " << NodeCount <<
+			" nps " << getNPS(NodeCount, Timer.ElapsedMilliseconds()) <<
+			" pv " << bestmove.toString() << std::endl;
+	}
+	return bestmove;
 }
 
 GoReturn Engine::go_alphabeta(int depth)
@@ -78,6 +136,10 @@ Move Engine::go_negamax(int depth)
 int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 {
 	NodeCount++;
+	if (NodeCount % 1028 == 0)
+	{
+		checkup();
+	}
 
 	if (depth == 0)
 	{
@@ -272,4 +334,13 @@ uint64_t Engine::perft(int depth)
 	assert(os == CurrentPos.OccupiedSq);
 
 	return count;
+}
+
+void Engine::checkup()
+{
+	Timer.Stop();
+	if (Timer.ElapsedMilliseconds() >= AllocatedTime)
+	{
+		longjmp(JumpEnv, Timer.ElapsedMilliseconds());
+	}
 }

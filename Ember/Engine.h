@@ -2,7 +2,7 @@
 
 #include "Net.h"
 
-#define TRAINING_BUILD
+//#define TRAINING_BUILD
 
 extern const int CONST_INF; 
 extern const int DATABASE_MAX_SIZE;
@@ -36,6 +36,9 @@ public:
 	size_t DBCounter;
 	size_t DBSize;
 
+	Clock Timer;
+	uint64_t AllocatedTime;
+
 	Net* NetPlay;
 	Net* NetTrain;
 	PositionNN PosNN;
@@ -65,6 +68,7 @@ public:
 	int Negamax(int depth, int ply);
 
 	uint64_t perft(int depth);
+	void checkup();
 
 	//Evaluation
 	int LeafEval();

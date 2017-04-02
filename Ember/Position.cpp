@@ -597,6 +597,11 @@ void Position::unmakeMove(Move const& m)
 	}*/
 }
 
+void Position::takebackMove()
+{
+	unmakeMove(movelist[movelist.size() - 1]);
+}
+
 void Position::addMove(std::vector<Move>& vec, Move const& m)
 {
 	makeMove(m);

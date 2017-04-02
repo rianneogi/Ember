@@ -334,6 +334,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				if (DBCounter == DATABASE_MAX_SIZE)
 				{
 					DBCounter = 0;
+					start_pos_id = 0;
 					printf("Counter reset: %d\n", CurrentPos.movelist.size());
 				}
 
@@ -378,7 +379,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 		}
 	
 		//Train
-		int num_epochs = 100;
+		int num_epochs = 10;
 		int num_runs = 1;
 		Float error = 0;
 		for (int epoch = 0; epoch < num_epochs; epoch++)

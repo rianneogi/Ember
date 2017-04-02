@@ -24,7 +24,7 @@ int main()
 		printf("%f\n", e.NetTrain->mBoard->mOptimizer->Variables[0]->Data(i));
 	}
 	
-	e.learn_eval_TD(1000, 60);
+	e.learn_eval_TD(10000, 3*60);
 
 	for (int i = 0; i < 5; i++)
 	{

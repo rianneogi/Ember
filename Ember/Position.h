@@ -40,6 +40,8 @@ public:
 	void makeMove(const Move& m);
 	void unmakeMove(const Move& m);
 
+	void takebackMove();
+
 	bool isLegalMove(const Move& m) const;
 	bool isAttacked(int turn, int n) const;
 	bool underCheck(int turn) const;

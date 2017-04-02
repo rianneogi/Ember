@@ -1,16 +1,4 @@
 #include "Net.h"
-#include <Neurons\FullyConnectedNeuron.h>
-#include <Neurons\ConvNeuron.h>
-#include <Neurons\KingNeuron.h>
-#include <Neurons\FileNeuron.h>
-#include <Neurons\Im2ColNeuron.h>
-#include <Neurons\TanhNeuron.h>
-#include <Neurons\LeakyReLUNeuron.h>
-#include <ErrorFunctions\MeanSquaredError.h>
-#include <ErrorFunctions\L1Error.h>
-#include <ErrorFunctions\UnitError.h>
-#include <Optimizers\StandardOptimizer.h>
-#include <Optimizers\AdamOptimizer.h>
 
 Net::Net() : BatchSize(20)
 {
@@ -43,7 +31,7 @@ void Net::init_net()
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
 	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
 
-	mBoard->setOptimizer(new AdamOptimizer(0.00001));
+	mBoard->setOptimizer(new AdamOptimizer(0.001));
 
 	mBoard->addNeuron(new Im2ColNeuron(Input, ConvKing, 3, 3));
 	mBoard->addNeuron(new ConvNeuron(ConvKing, FCKing, 1));

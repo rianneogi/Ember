@@ -30,6 +30,7 @@
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="PositionNN.cpp" />
     <ClCompile Include="Search.cpp" />
+    <ClCompile Include="SortNet.cpp" />
     <ClCompile Include="TranspositionTable.cpp" />
     <ClCompile Include="UCI.cpp" />
   </ItemGroup>
@@ -41,6 +42,7 @@
     <ClInclude Include="Net.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="PositionNN.h" />
+    <ClInclude Include="SortNet.h" />
     <ClInclude Include="TranspositionTable.h" />
     <ClInclude Include="UCI.h" />
   </ItemGroup>

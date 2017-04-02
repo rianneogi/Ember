@@ -174,10 +174,6 @@ Move Engine::getNextMove(std::vector<Move>& moves, int current_move, int ply)
 	Move m = bigmove; //swap move
 	moves.at(bigmoveid) = moves.at(current_move);
 	moves.at(current_move) = m;
-	//int sc = scores.at(bigmove); //swap score
-	//scores.at(bigmove) = scores.at(currentmove);
-	//scores.at(currentmove) = sc;
-	//sorttime.Stop();
 	return m;
 }
 
@@ -188,4 +184,38 @@ void Engine::setKiller(const Move& m, int ply)
 		KillerMoves[1][ply] = KillerMoves[0][ply];
 		KillerMoves[0][ply] = m;
 	}
+}
+
+Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
+{
+	int bigmoveid = current_move;
+	Move bigmove = moves.at(current_move);
+	long long bigscore = getMoveScore(bigmove, ply);
+	long long x;
+	for (int i = current_move + 1; i<moves.size(); i++)
+	{
+		//x = getMoveScore(moves.at(i), ply);
+		
+		moveToTensor(moves[i], &MoveTensor);
+		NetSort->mBoard->forward(MoveTensor);
+		x = NetSort->Output->Data(0);
+
+		//if (x >= 5000000) //pv or hash move found
+		//{
+		//	bigscore = x;
+		//	bigmoveid = i;
+		//	bigmove = moves.at(i);
+		//	break;
+		//}
+		if (x>bigscore)
+		{
+			bigscore = x;
+			bigmoveid = i;
+			bigmove = moves.at(i);
+		}
+	}
+	Move m = bigmove; //swap move
+	moves.at(bigmoveid) = moves.at(current_move);
+	moves.at(current_move) = m;
+	return m;
 }

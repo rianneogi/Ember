@@ -6,8 +6,9 @@ const int CONST_INF = 10000;
 const int BATCH_SIZE = 8;
 
 Engine::Engine()
-	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 8, 8, 14)), 
-	OutputMoveTensor(make_shape(BATCH_SIZE, 2, 64)), OutputEvalTensor(make_shape(BATCH_SIZE, 1))
+	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 8, 8, 14)),
+	OutputMoveTensor(make_shape(BATCH_SIZE, 2, 64)), OutputEvalTensor(make_shape(BATCH_SIZE, 1)),
+	MoveTensor(make_shape(64, 64)), SortTensor(make_shape(1, 1))
 {
 	Database = new Data[DATABASE_MAX_SIZE];
 	DBCounter = 0;
@@ -15,6 +16,7 @@ Engine::Engine()
 
 	NetPlay = new Net(1);
 	NetTrain = new Net(BatchSize);
+	NetSort = new SortNet();
 
 	for (int i = 0; i<2; i++)
 	{
@@ -45,11 +47,14 @@ Engine::~Engine()
 		delete NetTrain;
 	if(NetPlay)
 		delete NetPlay;
+	if (NetSort)
+		delete NetSort;
 
 	Table = NULL;
 	Database = NULL;
 	NetTrain = NULL;
 	NetPlay = NULL;
+	NetSort = NULL;
 }
 
 void Engine::load_nets(std::string path)
@@ -315,7 +320,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				//printf("n\n");
 				Bitset hash = CurrentPos.HashKey;
 
-				SearchResult go = go_alphabeta(2);
+				SearchResult go = go_alphabeta(3 + (rand()%2));
 				
 				m = go.m;
 				eval = go.eval / 100.0;
@@ -462,5 +467,5 @@ void Engine::updateVariables_TD(uint64_t start, uint64_t batch_size)
 		}
 	}
 	printf("avg change: %f\n", avg_change / count);
-	NetPlay->mBoard->copy_variables(NetTrain->mBoard);
+	//NetPlay->mBoard->copy_variables(NetTrain->mBoard);
 }

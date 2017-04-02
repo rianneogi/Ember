@@ -2,6 +2,19 @@
 
 #include "PositionNN.h"
 
+#include <Neurons\FullyConnectedNeuron.h>
+#include <Neurons\ConvNeuron.h>
+#include <Neurons\KingNeuron.h>
+#include <Neurons\FileNeuron.h>
+#include <Neurons\Im2ColNeuron.h>
+#include <Neurons\TanhNeuron.h>
+#include <Neurons\LeakyReLUNeuron.h>
+#include <ErrorFunctions\MeanSquaredError.h>
+#include <ErrorFunctions\L1Error.h>
+#include <ErrorFunctions\UnitError.h>
+#include <Optimizers\StandardOptimizer.h>
+#include <Optimizers\AdamOptimizer.h>
+
 class Net
 {
 public:

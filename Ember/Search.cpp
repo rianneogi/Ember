@@ -118,30 +118,6 @@ SearchResult Engine::go_alphabeta(int depth)
 	return SearchResult(bestmove, bestscore);
 }
 
-Move Engine::go_negamax(int depth)
-{
-	std::vector<Move> moves;
-	moves.reserve(128);
-	CurrentPos.generateMoves(moves);
-	int bestscore = -CONST_INF;
-	Move bestmove = createNullMove(CurrentPos.EPSquare);
-	for (size_t i = 0; i < moves.size(); i++)
-	{
-		//printf("Move: %s\n", moves[i].toString());
-
-		CurrentPos.makeMove(moves[i]);
-		int score = -Negamax(depth - 1, 1);
-		CurrentPos.unmakeMove(moves[i]);
-
-		if (score > bestscore)
-		{
-			bestscore = score;
-			bestmove = moves[i];
-		}
-	}
-	return bestmove;
-}
-
 int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 {
 	NodeCount++;
@@ -176,6 +152,9 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
+
+	std::vector<Move> oldmoves;
+	oldmoves.reserve(64);
 	
 	int bestscore = -CONST_INF;
 	int bound = TT_ALPHA;
@@ -183,7 +162,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	bool found_legal = false;
 	for (int i = 0; i < moves.size(); i++)
 	{
-		Move m = getNextMove(moves, i, ply);
+		Move m = getNextMove_NN(moves, i, ply);
 		
 		if (!CurrentPos.tryMove(m))
 		{
@@ -194,27 +173,42 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		int score = -AlphaBeta(-beta, -alpha, depth - 1, ply + 1);
 		
 		CurrentPos.unmakeMove(m);
+
 		if (score >= beta)
 		{
-			if (noMaterialGain(m))
-			{
-				//if(Table.getBestMove(pos.TTKey)!=m) //dont store hash move as a killer
-				setKiller(m, ply);
+			//if (noMaterialGain(m))
+			//{
+			//	//if(Table.getBestMove(pos.TTKey)!=m) //dont store hash move as a killer
+			//	setKiller(m, ply);
 
-				int bonus = depth*depth;
-				HistoryScores[m.getMovingPiece()][m.getTo()] += bonus;
-				if (HistoryScores[m.getMovingPiece()][m.getTo()] > 200000) //prevent overflow of history values
-				{
-					for (int i = 0; i < 6; i++)
-					{
-						for (int j = 0; j < 64; j++)
-						{
-							HistoryScores[i][j] /= 2;
-						}
-					}
-				}
-			}
+			//	int bonus = depth*depth;
+			//	HistoryScores[m.getMovingPiece()][m.getTo()] += bonus;
+			//	if (HistoryScores[m.getMovingPiece()][m.getTo()] > 200000) //prevent overflow of history values
+			//	{
+			//		for (int i = 0; i < 6; i++)
+			//		{
+			//			for (int j = 0; j < 64; j++)
+			//			{
+			//				HistoryScores[i][j] /= 2;
+			//			}
+			//		}
+			//	}
+			//}
 			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m); //not storing best move for now
+
+			moveToTensor(m, &MoveTensor);
+			SortTensor(0, 0) = 1.0;
+
+			NetSort->train(MoveTensor, SortTensor);
+
+			for (int j = 0; j < oldmoves.size(); j++)
+			{
+				moveToTensor(oldmoves[j], &MoveTensor);
+				SortTensor(0, 0) = 0.0;
+
+				NetSort->train(MoveTensor, SortTensor);
+			}
+
 			return score;
 		}
 		else if (score > bestscore)
@@ -227,6 +221,8 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 			bestscore = score;
 			bestmove = m;
 		}
+
+		oldmoves.push_back(m);
 	}
 	
 	if (!found_legal)
@@ -240,6 +236,30 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 
 	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, bestmove); //not storing best move for now
 	return bestscore;
+}
+
+Move Engine::go_negamax(int depth)
+{
+	std::vector<Move> moves;
+	moves.reserve(128);
+	CurrentPos.generateMoves(moves);
+	int bestscore = -CONST_INF;
+	Move bestmove = createNullMove(CurrentPos.EPSquare);
+	for (size_t i = 0; i < moves.size(); i++)
+	{
+		//printf("Move: %s\n", moves[i].toString());
+
+		CurrentPos.makeMove(moves[i]);
+		int score = -Negamax(depth - 1, 1);
+		CurrentPos.unmakeMove(moves[i]);
+
+		if (score > bestscore)
+		{
+			bestscore = score;
+			bestmove = moves[i];
+		}
+	}
+	return bestmove;
 }
 
 int Engine::Negamax(int depth, int ply)

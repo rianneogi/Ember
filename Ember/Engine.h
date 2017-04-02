@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Net.h"
+#include "SortNet.h"
 
 //#define TRAINING_BUILD
 
@@ -44,11 +44,16 @@ public:
 
 	Net* NetPlay;
 	Net* NetTrain;
+	SortNet* NetSort;
+
 	PositionNN PosNN;
 	Tensor InputTensor;
 	Tensor OutputMoveTensor;
 	Tensor OutputEvalTensor;
 	uint64_t BatchSize;
+
+	Tensor MoveTensor;
+	Tensor SortTensor;
 
 	Move KillerMoves[2][100];
 	long HistoryScores[64][64];
@@ -81,6 +86,7 @@ public:
 	int getMoveScore(const Move& m, int ply);
 	Move getNextMove(std::vector<Move>& moves, int current_move, int ply);
 	void setKiller(const Move& m, int ply);
+	Move getNextMove_NN(std::vector<Move>& moves, int current_move, int ply);
 
 	//Learning
 	void learn_eval(uint64_t num_games);

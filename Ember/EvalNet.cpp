@@ -1,22 +1,22 @@
-#include "Net.h"
+#include "EvalNet.h"
 
-Net::Net() : BatchSize(20)
+EvalNet::EvalNet() : BatchSize(20)
 {
 	init_net();
 }
 
-Net::Net(uint64_t batch_size) : BatchSize(batch_size)
+EvalNet::EvalNet(uint64_t batch_size) : BatchSize(batch_size)
 {
 	init_net();
 }
 
-Net::~Net()
+EvalNet::~EvalNet()
 {
 	delete mBoard;
 	mBoard = NULL;
 }
 
-void Net::init_net()
+void EvalNet::init_net()
 {
 	mBoard = new Board();
 	Input = mBoard->newBlob(make_shape(BatchSize, 8, 8, 14));
@@ -47,7 +47,7 @@ void Net::init_net()
 	mBoard->addErrorFunction(new L1Error(Input, Output_Eval));
 }
 
-Float Net::train(Tensor inputs, Tensor* output_move, Tensor* output_eval)
+Float EvalNet::train(Tensor inputs, Tensor* output_move, Tensor* output_eval)
 {
 	std::vector<Tensor*> v;
 	//v.push_back(output_move);
@@ -57,18 +57,18 @@ Float Net::train(Tensor inputs, Tensor* output_move, Tensor* output_eval)
 	return error;
 }
 
-Float Net::get_eval(Tensor input)
+Float EvalNet::get_eval(Tensor input)
 {
 	mBoard->forward(input);
 	return Output_Eval->Data(0);
 }
 
-void Net::save(std::string filename)
+void EvalNet::save(std::string filename)
 {
 	mBoard->save_variables(filename);
 }
 
-void Net::load(std::string filename)
+void EvalNet::load(std::string filename)
 {
 	mBoard->load_variables(filename);
 }

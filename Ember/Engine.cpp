@@ -14,8 +14,8 @@ Engine::Engine()
 	DBCounter = 0;
 	DBSize = 0;
 
-	NetPlay = new Net(1);
-	NetTrain = new Net(BatchSize);
+	NetPlay = new EvalNet(1);
+	NetTrain = new EvalNet(BatchSize);
 	NetSort = new SortNet(BatchSize);
 
 	for (int i = 0; i<2; i++)

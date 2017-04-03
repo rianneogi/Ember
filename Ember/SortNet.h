@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Net.h"
+#include "EvalNet.h"
 
 class SortNet
 {

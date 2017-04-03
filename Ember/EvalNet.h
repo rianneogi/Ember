@@ -15,7 +15,7 @@
 #include <Optimizers\StandardOptimizer.h>
 #include <Optimizers\AdamOptimizer.h>
 
-class Net
+class EvalNet
 {
 public:
 	Board* mBoard;
@@ -50,9 +50,9 @@ public:
 
 	uint64_t BatchSize;
 
-	Net();
-	Net(uint64_t batch_size);
-	~Net();
+	EvalNet();
+	EvalNet(uint64_t batch_size);
+	~EvalNet();
 
 	void init_net();
 

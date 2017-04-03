@@ -42,8 +42,8 @@ public:
 	uint64_t AllocatedTime;
 	int TimeMode;
 
-	Net* NetPlay;
-	Net* NetTrain;
+	EvalNet* NetPlay;
+	EvalNet* NetTrain;
 	SortNet* NetSort;
 
 	PositionNN PosNN;

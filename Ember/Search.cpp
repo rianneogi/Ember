@@ -70,8 +70,8 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 		std::cout << "info score cp " << go.eval << " depth " << depth << " nodes " << NodeCount <<
 			" nps " << getNPS(NodeCount, Timer.ElapsedMilliseconds()) <<
 			" pv " << bestmove.toString() << std::endl;
-		std::cout << "info string Betacuff ratio: " << ((BetaCutoffCount*1.0) / NodeCount) << std::endl;
-		std::cout << "info string Betacuff movecount: " << ((BetaCutoffValue*1.0) / BetaCutoffCount) << std::endl;
+		//std::cout << "info string Betacuff ratio: " << ((BetaCutoffCount*1.0) / NodeCount) << std::endl;
+		//std::cout << "info string Betacuff movecount: " << ((BetaCutoffValue*1.0) / BetaCutoffCount) << std::endl;
 
 		assert(go.eval >= -CONST_INF && go.eval <= CONST_INF);
 		assert(bestmove.isNullMove() == false);

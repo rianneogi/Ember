@@ -1,7 +1,7 @@
 #include "UCI.h"
 
 std::string ENGINENAME = "Ember";
-int ENGINEVERSION = 5;
+int ENGINEVERSION = 6;
 std::string ENGINEAUTHOR = "Rian Neogi";
 
 UCI::UCI()

@@ -120,7 +120,7 @@ void Engine::learn_eval(uint64_t num_games)
 				for (int epoch = 0; epoch < 100; epoch++)
 				{
 					Float error = 0;
-					for (int batch = 0; batch < 100; batch++)
+					for (int batch = 0; batch < DBSize / BatchSize; batch++)
 					{
 						for (uint64_t i = 0; i < BatchSize; i++)
 						{

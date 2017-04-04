@@ -11,25 +11,15 @@ int main()
 	magicinit();
 	datainit();
 
-	std::string path = "Data/variables_v4.bin";
+	std::string path = "Data/variables_superconv.bin";
 
 #ifdef TRAINING_BUILD
 	Engine e;
 	printf("Loading weights\n");
-	e.load_nets(path);
+	//e.load_nets(path);
 	printf("Starting training\n");
-
-	for (int i = 0; i < 5; i++)
-	{
-		printf("%f\n", e.NetTrain->mBoard->mOptimizer->Variables[0]->Data(i));
-	}
 	
-	e.learn_eval_TD(10000, 3*60);
-
-	for (int i = 0; i < 5; i++)
-	{
-		printf("%f\n", e.NetTrain->mBoard->mOptimizer->Variables[0]->Data(i));
-	}
+	e.learn_eval(1000);
 	
 	printf("Saving weights\n");
 	e.NetTrain->save(path);
@@ -51,6 +41,7 @@ int main()
 	e.CurrentPos.display(0);
 	printf("%f %d\n", e.LeafEval_NN(), e.LeafEval());
 	_getch();
+
 #else
 	UCI uci;
 	uci.Ember.load_nets(path);

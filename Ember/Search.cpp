@@ -156,7 +156,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	bool found_legal = false;
 	for (int i = 0; i < moves.size(); i++)
 	{
-		Move m = getNextMove_NN(moves, i, ply);
+		Move m = getNextMove(moves, i, ply);
 		
 		if (!CurrentPos.tryMove(m))
 		{
@@ -170,27 +170,27 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 
 		if (score >= beta)
 		{
-			//if (noMaterialGain(m))
-			//{
-			//	//if(Table.getBestMove(pos.TTKey)!=m) //dont store hash move as a killer
-			//	setKiller(m, ply);
+			if (noMaterialGain(m))
+			{
+				//if(Table.getBestMove(pos.TTKey)!=m) //dont store hash move as a killer
+				setKiller(m, ply);
 
-			//	int bonus = depth*depth;
-			//	HistoryScores[m.getMovingPiece()][m.getTo()] += bonus;
-			//	if (HistoryScores[m.getMovingPiece()][m.getTo()] > 200000) //prevent overflow of history values
-			//	{
-			//		for (int i = 0; i < 6; i++)
-			//		{
-			//			for (int j = 0; j < 64; j++)
-			//			{
-			//				HistoryScores[i][j] /= 2;
-			//			}
-			//		}
-			//	}
-			//}
+				int bonus = depth*depth;
+				HistoryScores[m.getMovingPiece()][m.getTo()] += bonus;
+				if (HistoryScores[m.getMovingPiece()][m.getTo()] > 200000) //prevent overflow of history values
+				{
+					for (int i = 0; i < 6; i++)
+					{
+						for (int j = 0; j < 64; j++)
+						{
+							HistoryScores[i][j] /= 2;
+						}
+					}
+				}
+			}
 			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m);
 
-			moveToTensorPtr(m, &MoveTensor(SortNetCount, 0));
+			/*moveToTensorPtr(m, &MoveTensor(SortNetCount, 0));
 			SortTensor(SortNetCount, 0) = depth;
 
 			SortNetCount++;
@@ -211,7 +211,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 					NetSort->train(MoveTensor, SortTensor);
 					SortNetCount = 0;
 				}
-			}
+			}*/
 
 			BetaCutoffCount++;
 			BetaCutoffValue += (i + 1);

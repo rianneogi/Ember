@@ -84,7 +84,7 @@ void Engine::learn_eval(uint64_t num_games)
 
 			Move m = moves[rand() % moves.size()];
 
-			int leaf = LeafEval();
+			int leaf = LeafEval_MatOnly();
 
 			int r = rand() % 10;
 			if (r == 0)
@@ -128,7 +128,7 @@ void Engine::learn_eval(uint64_t num_games)
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
+							error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
 							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 						}
 					}

@@ -2,7 +2,7 @@
 
 #include "SortNet.h"
 
-//#define TRAINING_BUILD
+#define TRAINING_BUILD
 
 extern jmp_buf JumpEnv;
 

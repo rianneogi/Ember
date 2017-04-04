@@ -6,8 +6,10 @@
 #include <Neurons\ConvNeuron.h>
 #include <Neurons\KingNeuron.h>
 #include <Neurons\FileNeuron.h>
+#include <Neurons\DiagNeuron.h>
 #include <Neurons\Im2ColNeuron.h>
 #include <Neurons\TanhNeuron.h>
+#include <Neurons\SigmoidNeuron.h>
 #include <Neurons\LeakyReLUNeuron.h>
 #include <ErrorFunctions\MeanSquaredError.h>
 #include <ErrorFunctions\L1Error.h>
@@ -20,7 +22,8 @@ class EvalNet
 public:
 	Board* mBoard;
 
-	Blob* Input;
+	Blob* Input_Pos;
+	Blob* Input_Move;
 
 	Blob* ConvKing;
 	Blob* FCKing;
@@ -41,13 +44,17 @@ public:
 	Blob* FCKnight;
 	Blob* ActKnight;
 
-	Blob* FullFC1;
-	Blob* FullFCAct1;
-	Blob* OutputMoveFC;
+	Blob* ConvAct;
+
+	Blob* FullFC;
+	Blob* FullFCAct;
+
 	Blob* OutputEvalFC;
-	Blob* Output_Move;
 	Blob* Output_Eval;
 
+	Blob* OutputMoveFC;
+	Blob* Output_Move;
+	
 	uint64_t BatchSize;
 
 	EvalNet();
@@ -56,7 +63,7 @@ public:
 
 	void init_net();
 
-	Float train(Tensor inputs, Tensor* output_move, Tensor* output_eval);
+	Float train(Tensor inputs, Tensor* output_eval, Tensor* output_move);
 
 	Float get_eval(Tensor input);
 

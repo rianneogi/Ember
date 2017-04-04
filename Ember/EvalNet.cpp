@@ -27,22 +27,22 @@ void EvalNet::init_net()
 	Input_Pos = mBoard->newBlob(make_shape(BatchSize, 8, 8, 14));
 	Input_Move = mBoard->newBlob(make_shape(BatchSize, 64 + 64 + 6 + 7 + 7));
 
-	ConvAct = mBoard->newBlob(make_shape(BatchSize, 128*8*8 + 30*8*14 + 8*8*14 + 8*8*14));
+	ConvAct = mBoard->newBlob(make_shape(BatchSize, 4*8*8 + 30*8*4 + 8*8*4 + 8*8*4));
 
 	ConvKing = mBoard->newBlob(make_shape(BatchSize*8*8, 14*9));
-	FCKing = mBoard->newBlob(make_shape(BatchSize*8*8, 128));
-	ActKing = ConvAct->cut2(0, 128 * 8 * 8); //resize in activation neuron
+	FCKing = mBoard->newBlob(make_shape(BatchSize*8*8, 4));
+	ActKing = ConvAct->cut2(0, 4 * 8 * 8); //resize in activation neuron
 
 	ConvDiag = mBoard->newBlob(make_shape(BatchSize * 30, 8 * 14));
-	FCDiag = mBoard->newBlob(make_shape(BatchSize * 30, 8 * 14));
-	ActDiag = ConvAct->cut2(128*8*8, 30*8*14);
+	FCDiag = mBoard->newBlob(make_shape(BatchSize * 30, 8 * 4));
+	ActDiag = ConvAct->cut2(4*8*8, 30*8*4);
 
 	ConvFile = mBoard->newBlob(make_shape(BatchSize * 8, 8 * 14));
-	FCFile = mBoard->newBlob(make_shape(BatchSize * 8, 8 * 14));
-	ActFile = ConvAct->cut2(128 * 8 * 8 + 30*8*14, 8 * 8 * 14);
+	FCFile = mBoard->newBlob(make_shape(BatchSize * 8, 8 * 4));
+	ActFile = ConvAct->cut2(4 * 8 * 8 + 30*8*4, 8 * 8 * 4);
 
-	FCRank = mBoard->newBlob(make_shape(BatchSize * 8, 8 * 14));
-	ActRank = ConvAct->cut2(128 * 8 * 8 + 30 * 8 * 14 + 8 * 8 * 14, 8 * 8 * 14);
+	FCRank = mBoard->newBlob(make_shape(BatchSize * 8, 8 * 4));
+	ActRank = ConvAct->cut2(4 * 8 * 8 + 30 * 8 * 4 + 8 * 8 * 4, 8 * 8 * 4);
 
 	FullFC = mBoard->newBlob(make_shape(BatchSize, 32));
 	FullFCAct = mBoard->newBlob(make_shape(BatchSize, 32));
@@ -67,12 +67,12 @@ void EvalNet::init_net()
 	mBoard->addNeuron(new ConvNeuron(ConvFile, FCFile, 1));
 	mBoard->addNeuron(new LeakyReLUNeuron(FCFile, ActFile, 0.05));
 
-	//Input_Pos->reshape(make_shape(BatchSize * 8, 8 * 14));   //reshape before initializing Rank FC
 	mBoard->addNeuron(new ReshapeNeuron(Input_Pos, Input_Pos, make_shape(BatchSize * 8, 8 * 14)));
+	Input_Pos->reshape(make_shape(BatchSize * 8, 8 * 14));   //reshape before initializing Rank FC
 	mBoard->addNeuron(new ConvNeuron(Input_Pos, FCRank, 1));
 	mBoard->addNeuron(new LeakyReLUNeuron(FCRank, ActRank, 0.05));
-	mBoard->addNeuron(new ReshapeNeuron(Input_Pos, Input_Pos, make_shape(BatchSize,8, 8, 14)));
-	//Input_Pos->reshape(make_shape(BatchSize, 8, 8, 14));
+	mBoard->addNeuron(new ReshapeNeuron(Input_Pos, Input_Pos, make_shape(BatchSize, 8, 8, 14)));
+	Input_Pos->reshape(make_shape(BatchSize, 8, 8, 14));
 
 	mBoard->addNeuron(new FullyConnectedNeuron(ConvAct, FullFC, 1));
 	mBoard->addNeuron(new LeakyReLUNeuron(FullFC, FullFCAct, 0.05));
@@ -85,6 +85,10 @@ void EvalNet::init_net()
 
 	mBoard->addErrorFunction(new L1Error(Input_Pos, Output_Eval));
 	//mBoard->addErrorFunction(new L1Error(Input_Move, Output_Move));
+
+	Input_Pos->Data.setzero();
+	printf("go\n");
+	mBoard->forward(Input_Pos->Data).print();
 }
 
 Float EvalNet::train(Tensor inputs, Tensor* output_eval, Tensor* output_move)

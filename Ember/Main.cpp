@@ -16,10 +16,10 @@ int main()
 #ifdef TRAINING_BUILD
 	Engine e;
 	printf("Loading weights\n");
-	//e.load_nets(path);
+	e.load_nets(path);
 	printf("Starting training\n");
 	
-	e.learn_eval(1000);
+	e.learn_eval(650);
 	
 	printf("Saving weights\n");
 	e.NetTrain->save(path);

@@ -117,7 +117,7 @@ void Engine::learn_eval(uint64_t num_games)
 			if (DBSize == DATABASE_MAX_SIZE && c%64==0)
 			{
 				//printf("EPOCH\n");
-				for (int epoch = 0; epoch < 100; epoch++)
+				for (int epoch = 0; epoch < 10; epoch++)
 				{
 					Float error = 0;
 					for (int batch = 0; batch < DBSize / BatchSize; batch++)
@@ -133,12 +133,12 @@ void Engine::learn_eval(uint64_t num_games)
 						for (int run = 0; run < 1; run++)
 						{
 							error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
-							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
+							//printf("Error: %f\n", error);
 						}
 					}
-					if (epoch == 99)
+					if (epoch == 4)
 					{
-						printf("Final error: %f, avg: %f\n", error, error/(64*100));
+						printf("Final error: %f, avg: %f\n", error, error/(DBSize*10));
 					}
 				}
 				

@@ -83,6 +83,10 @@ void Engine::learn_eval(uint64_t num_games)
 			CurrentPos.generateMoves(moves);
 
 			Move m = moves[rand() % moves.size()];
+			while (!CurrentPos.isMoveLegal(m))
+			{
+				m = moves[rand() % moves.size()];
+			}
 
 			int leaf = LeafEval_MatOnly();
 
@@ -176,6 +180,10 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 				CurrentPos.generateMoves(moves);
 
 				m = moves[rand() % moves.size()];
+				while (!CurrentPos.isMoveLegal(m))
+				{
+					m = moves[rand() % moves.size()];
+				}
 				assert(m.isNullMove() == false);
 
 				eval = LeafEval();

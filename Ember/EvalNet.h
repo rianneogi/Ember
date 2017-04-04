@@ -11,6 +11,7 @@
 #include <Neurons\TanhNeuron.h>
 #include <Neurons\SigmoidNeuron.h>
 #include <Neurons\LeakyReLUNeuron.h>
+#include <Neurons\ReshapeNeuron.h>
 #include <ErrorFunctions\MeanSquaredError.h>
 #include <ErrorFunctions\L1Error.h>
 #include <ErrorFunctions\UnitError.h>

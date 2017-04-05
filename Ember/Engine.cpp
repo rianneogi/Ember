@@ -232,7 +232,7 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 			if (DBSize >= DATABASE_MAX_SIZE && c % 64 == 0)
 			{
 				//printf("EPOCH\n");
-				for (int epoch = 0; epoch < 100; epoch++)
+				for (int epoch = 0; epoch < 10; epoch++)
 				{
 					Float error = 0;
 					for (int batch = 0; batch < DBSize/BatchSize; batch++)
@@ -247,13 +247,13 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
+							error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
 							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 						}
 					}
-					if (epoch == 99)
+					if (epoch == 9)
 					{
-						printf("Final error: %f, avg: %f\n", error, error / (BatchSize * DBSize));
+						printf("Final error: %f, avg: %f\n", error, error / (10 * DBSize));
 					}
 				}
 			}
@@ -331,7 +331,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				//printf("n\n");
 				Bitset hash = CurrentPos.HashKey;
 
-				SearchResult go = go_alphabeta(3 + (rand()%2));
+				SearchResult go = go_alphabeta(2 + (rand()%2));
 				
 				m = go.m;
 				eval = go.eval / 100.0;
@@ -420,7 +420,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				}
 				for (int run = 0; run < num_runs; run++)
 				{
-					error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
+					error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
 					//updateVariables_TD(batch*BatchSize, BatchSize);
 				}
 			}

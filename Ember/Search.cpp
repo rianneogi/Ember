@@ -115,16 +115,18 @@ SearchResult Engine::go_alphabeta(int depth)
 int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 {
 	NodeCount++;
+#ifndef TRAINING_BUILD
 	if (NodeCount % 1028 == 0)
 	{
 		if(TimeMode==MODE_MOVETIME || TimeMode==MODE_DEFAULT)
 			checkup();
 	}
+#endif
 	
 	if (depth == 0)
 	{
 #ifdef TRAINING_BUILD
-		return int(LeafEval_NN());
+		return int(LeafEval());
 #else
 		return LeafEval_NN();
 #endif
@@ -335,7 +337,7 @@ int Engine::Negamax(int depth, int ply)
 			memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 			OutputEvalTensor(i) = Database[id].eval;
 		}
-		NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
+		NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
 	}
 	return bestscore;
 }

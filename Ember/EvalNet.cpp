@@ -86,9 +86,9 @@ void EvalNet::init_net()
 	mBoard->addErrorFunction(new L1Error(Input_Pos, Output_Eval));
 	//mBoard->addErrorFunction(new L1Error(Input_Move, Output_Move));
 
-	Input_Pos->Data.setzero();
+	/*Input_Pos->Data.setzero();
 	printf("go\n");
-	mBoard->forward(Input_Pos->Data).print();
+	mBoard->forward(Input_Pos->Data).print();*/
 }
 
 Float EvalNet::train(Tensor inputs, Tensor* output_eval, Tensor* output_move)

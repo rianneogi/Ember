@@ -45,6 +45,7 @@ public:
 	void loadFromFEN(std::string fen);
 
 	void generateMoves(std::vector<Move>& moves);
+	void generateCaptures(std::vector<Move>& moves);
 	
 	void makeMove(const Move& m);
 	bool tryMove(const Move& m)
@@ -83,6 +84,12 @@ public:
 
 	int getGameStatus();
 	bool isRepetition();
+
+	Move getSmallestAttacker(int turn, int n, unsigned long long occ);
+	Move getSmallestAttacker(int turn, int n)
+	{
+		return getSmallestAttacker(turn, n, OccupiedSq);
+	}
 
 	void display(int flip);
 };

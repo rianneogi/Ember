@@ -29,6 +29,7 @@
     <ClCompile Include="EvalNet.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="PositionNN.cpp" />
+    <ClCompile Include="QSearch.cpp" />
     <ClCompile Include="Search.cpp" />
     <ClCompile Include="SortNet.cpp" />
     <ClCompile Include="TranspositionTable.cpp" />

@@ -57,6 +57,9 @@
     <ClCompile Include="EvalNet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="QSearch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">

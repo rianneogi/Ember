@@ -891,6 +891,158 @@ void Position::generateMoves(std::vector<Move>& moves)
 	}
 }
 
+
+void Position::generateCaptures(std::vector<Move>& moves)
+{
+	//std::vector<Move> moves(0);
+	//moves.reserve(128);
+	//moves.clear();
+
+	Bitset ColorPieces[2];
+
+	ColorPieces[COLOR_WHITE] = Pieces[COLOR_WHITE][PIECE_PAWN] | Pieces[COLOR_WHITE][PIECE_KNIGHT] |
+		Pieces[COLOR_WHITE][PIECE_BISHOP] | Pieces[COLOR_WHITE][PIECE_ROOK] |
+		Pieces[COLOR_WHITE][PIECE_QUEEN] | Pieces[COLOR_WHITE][PIECE_KING];
+	ColorPieces[COLOR_BLACK] = Pieces[COLOR_BLACK][PIECE_PAWN] | Pieces[COLOR_BLACK][PIECE_KNIGHT] |
+		Pieces[COLOR_BLACK][PIECE_BISHOP] | Pieces[COLOR_BLACK][PIECE_ROOK] |
+		Pieces[COLOR_BLACK][PIECE_QUEEN] | Pieces[COLOR_BLACK][PIECE_KING];
+
+	Bitset b;
+	//Pawn Moves
+	b = Pieces[Turn][PIECE_PAWN];
+	while (b)
+	{
+		unsigned long n = 0;
+		BitscanForward(&n, b);
+		b ^= getPos2Bit(n);
+
+		//Pawn Attacks
+		Bitset x = 0x0;
+		if (EPSquare == 0)
+			x = PawnAttacks[Turn][n] & (ColorPieces[getOpponent(Turn)]);
+		else
+			x = PawnAttacks[Turn][n] & (ColorPieces[getOpponent(Turn)] | getPos2Bit(EPSquare));
+		while (x)
+		{
+			unsigned long k = 0;
+			BitscanForward(&k, x);
+			x ^= getPos2Bit(k);
+			if (getRank(k) == 7 || getRank(k) == 0) //promotion
+			{
+				Move movq(n, k, PIECE_PAWN, Squares[k], PIECE_QUEEN, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+				addMove(moves, movq);
+				Move movn(n, k, PIECE_PAWN, Squares[k], PIECE_KNIGHT, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+				addMove(moves, movn);
+				Move movr(n, k, PIECE_PAWN, Squares[k], PIECE_ROOK, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+				addMove(moves, movr);
+				Move movb(n, k, PIECE_PAWN, Squares[k], PIECE_BISHOP, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+				addMove(moves, movb);
+			}
+			else
+			{
+				Move mov(n, k, PIECE_PAWN, Squares[k], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+				if (EPSquare != 0 && k == EPSquare)
+					mov = Move(n, k, PIECE_PAWN, Squares[k], PIECE_PAWN, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+				addMove(moves, mov);
+			}
+		}
+	}
+
+	//Knight Moves
+	b = Pieces[Turn][PIECE_KNIGHT];
+	while (b)
+	{
+		unsigned long n = 0;
+		BitscanForward(&n, b);
+		b ^= getPos2Bit(n);
+		Bitset m = getKnightMoves(n)&ColorPieces[getOpponent(Turn)];
+		while (m)
+		{
+			unsigned long k = 0;
+			BitscanForward(&k, m);
+			m ^= getPos2Bit(k);
+			Move mov(n, k, PIECE_KNIGHT, Squares[k], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+			addMove(moves, mov);
+		}
+	}
+
+	//King Moves
+	b = Pieces[Turn][PIECE_KING];
+	while (b)
+	{
+		unsigned long n = 0;
+		BitscanForward(&n, b);
+		b ^= getPos2Bit(n);
+		Bitset m = getKingMoves(n)&ColorPieces[getOpponent(Turn)];
+		while (m)
+		{
+			unsigned long k = 0;
+			BitscanForward(&k, m);
+			m ^= getPos2Bit(k);
+			Move mov(n, k, PIECE_KING, Squares[k], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+			addMove(moves, mov);
+		}
+	}
+
+	//Rook Moves
+	b = Pieces[Turn][PIECE_ROOK];
+	while (b)
+	{
+		unsigned long n = 0;
+		BitscanForward(&n, b);
+		b ^= getPos2Bit(n);
+		Bitset m = getRookAttacks(n, OccupiedSq);
+		m &= ColorPieces[getOpponent(Turn)];
+		while (m)
+		{
+			unsigned long k = 0;
+			BitscanForward(&k, m);
+			m ^= getPos2Bit(k);
+			Move mov(n, k, PIECE_ROOK, Squares[k], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+			addMove(moves, mov);
+		}
+	}
+
+	//Bishop Moves
+	b = Pieces[Turn][PIECE_BISHOP];
+	while (b)
+	{
+		unsigned long n = 0;
+		BitscanForward(&n, b);
+		b ^= getPos2Bit(n);
+		Bitset m = getBishopAttacks(n, OccupiedSq);
+		m &= ColorPieces[getOpponent(Turn)];
+		while (m)
+		{
+			unsigned long k = 0;
+			BitscanForward(&k, m);
+			m ^= getPos2Bit(k);
+			Move mov(n, k, PIECE_BISHOP, Squares[k], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+			addMove(moves, mov);
+		}
+	}
+
+	//Queen Moves
+	b = Pieces[Turn][PIECE_QUEEN];
+	while (b)
+	{
+		unsigned long n = 0;
+		BitscanForward(&n, b);
+		b ^= getPos2Bit(n);
+		Bitset m = getQueenAttacks(n, OccupiedSq);
+		m &= ColorPieces[getOpponent(Turn)];
+		while (m)
+		{
+			unsigned long k = 0;
+			BitscanForward(&k, m);
+			m ^= getPos2Bit(k);
+			Move mov(n, k, PIECE_QUEEN, Squares[k], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+			addMove(moves, mov);
+		}
+	}
+}
+
+
 bool Position::isAttacked(int turn, int n) const
 {
 	int opp = getOpponent(turn);
@@ -910,6 +1062,71 @@ bool Position::isAttacked(int turn, int n) const
 	if (b != 0)
 		return true;
 	return false;
+}
+
+Move Position::getSmallestAttacker(int turn, int n, unsigned long long occ)
+{
+	int opp = getOpponent(turn);
+	Bitset b = 0x0;
+	b = PawnAttacks[opp][n] & Pieces[turn][PIECE_PAWN];
+	if (b != 0)
+	{
+		unsigned long k = 0;
+		BitscanForward(&k, b);  //we don't care if this is a promotion or en passant since this function is only going to be called in SEE
+		Move mov(k, n, PIECE_PAWN, Squares[n], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+		//if(isLegal(mov))
+		return mov;
+	}
+	b |= KnightMoves[n] & Pieces[turn][PIECE_KNIGHT];
+	if (b != 0)
+	{
+		unsigned long k = 0;
+		BitscanForward(&k, b);
+		Move mov(k, n, PIECE_KNIGHT, Squares[n], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+		//if(isLegal(mov))
+		return mov;
+	}
+	b |= getBishopAttacks(n, occ);
+	b &= Pieces[turn][PIECE_BISHOP];
+	if (b != 0)
+	{
+		unsigned long k = 0;
+		BitscanForward(&k, b);
+		Move mov(k, n, PIECE_BISHOP, Squares[n], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+		//if(isLegal(mov))
+		return mov;
+	}
+	b |= getRookAttacks(n, occ);
+	b &= Pieces[turn][PIECE_ROOK];
+	if (b != 0)
+	{
+		unsigned long k = 0;
+		BitscanForward(&k, b);
+		Move mov(k, n, PIECE_ROOK, Squares[n], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+		//if(isLegal(mov))
+		return mov;
+	}
+	b |= getBishopAttacks(n, occ);
+	b |= getRookAttacks(n, occ);
+	b &= Pieces[turn][PIECE_QUEEN];
+	if (b != 0)
+	{
+		unsigned long k = 0;
+		BitscanForward(&k, b);
+		Move mov(k, n, PIECE_QUEEN, Squares[n], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+		//if(isLegal(mov))
+		return mov;
+	}
+	b |= getKingMoves(n)&Pieces[turn][PIECE_KING];
+	if (b != 0)
+	{
+		unsigned long k = 0;
+		BitscanForward(&k, b);
+		Move mov(k, n, PIECE_KING, Squares[n], PIECE_NONE, Castling[0][0], Castling[0][1], Castling[1][0], Castling[1][1], EPSquare);
+		//if(isLegal(mov))
+		return mov;
+	}
+	return CONST_NULLMOVE;
 }
 
 

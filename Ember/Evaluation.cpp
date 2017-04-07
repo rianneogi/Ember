@@ -119,3 +119,37 @@ Float Engine::LeafEval_NN()
 	
 	return eval;
 }
+
+bool Engine::isDraw()
+{
+	Bitset ColorPieces[2];
+	long long ColorPiecesCount[2];
+
+	if (popcnt(CurrentPos.OccupiedSq) > 3)
+	{
+		return false;
+	}
+
+	for (int i = 0;i < 2;i++)
+	{
+		ColorPieces[i] = CurrentPos.Pieces[i][PIECE_PAWN] | CurrentPos.Pieces[i][PIECE_KNIGHT] |
+			CurrentPos.Pieces[i][PIECE_BISHOP] | CurrentPos.Pieces[i][PIECE_ROOK] |
+			CurrentPos.Pieces[i][PIECE_QUEEN] | CurrentPos.Pieces[i][PIECE_KING];
+		ColorPiecesCount[i] = popcnt(ColorPieces[i]);
+	}
+	if (ColorPiecesCount[COLOR_BLACK] == 1 && ColorPiecesCount[COLOR_WHITE] == 2
+		&& (popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_KNIGHT]) == 1 || popcnt(CurrentPos.Pieces[COLOR_WHITE][PIECE_BISHOP]) == 1))
+	{
+		return true;
+	}
+	if (ColorPiecesCount[COLOR_WHITE] == 1 && ColorPiecesCount[COLOR_BLACK] == 2
+		&& (popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_KNIGHT]) == 1 || popcnt(CurrentPos.Pieces[COLOR_BLACK][PIECE_BISHOP]) == 1))
+	{
+		return true;
+	}
+	if (ColorPiecesCount[COLOR_WHITE] == 1 && ColorPiecesCount[COLOR_BLACK] == 1)
+	{
+		return true;
+	}
+	return false;
+}

@@ -91,6 +91,10 @@ public:
 	void setKiller(const Move& m, int ply);
 	Move getNextMove_NN(std::vector<Move>& moves, int current_move, int ply);
 
+	//QSearch
+	int QuiescenceSearch(int alpha, int beta);
+	int StaticExchangeEvaluation(int to, int from, int movpiece, int capt);
+
 	//Learning
 	void learn_eval(uint64_t num_games);
 	void learn_eval_NN(uint64_t num_games, double time_limit);
@@ -106,5 +110,7 @@ public:
 			longjmp(JumpEnv, Timer.ElapsedMilliseconds());
 		}
 	}
+
+	bool isDraw();
 };
 

@@ -126,9 +126,9 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	if (depth == 0)
 	{
 #ifdef TRAINING_BUILD
-		return int(LeafEval());
+		return LeafEval();
 #else
-		return LeafEval_NN();
+		return QSearch(alpha, beta);
 #endif
 	}
 	

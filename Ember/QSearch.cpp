@@ -2,7 +2,7 @@
 
 int PieceMaterial[7] = { 100,300,300,500,900,0,0 };
 
-int Engine::QuiescenceSearch(int alpha, int beta)
+int Engine::QSearch(int alpha, int beta)
 {
 	//quisctime.Start();
 
@@ -32,7 +32,7 @@ int Engine::QuiescenceSearch(int alpha, int beta)
 	//}
 	//else
 	//{
-	stand_pat = LeafEval();
+	stand_pat = LeafEval_NN();
 	//} 
 	if (stand_pat >= beta) //standpat
 	{
@@ -91,7 +91,7 @@ int Engine::QuiescenceSearch(int alpha, int beta)
 		{
 			SelectiveDepth = ply;
 		}*/
-		score = -QuiescenceSearch(-beta, -alpha);
+		score = -QSearch(-beta, -alpha);
 		CurrentPos.unmakeMove(m);
 		//ply--;
 		if (score >= beta)

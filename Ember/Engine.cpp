@@ -117,7 +117,7 @@ void Engine::learn_eval(uint64_t num_games)
 			if (DBSize == DATABASE_MAX_SIZE && c%64==0)
 			{
 				//printf("EPOCH\n");
-				for (int epoch = 0; epoch < 10; epoch++)
+				for (int epoch = 0; epoch < 100; epoch++)
 				{
 					Float error = 0;
 					for (int batch = 0; batch < DBSize / BatchSize; batch++)
@@ -136,7 +136,7 @@ void Engine::learn_eval(uint64_t num_games)
 							//printf("Error: %f\n", error);
 						}
 					}
-					if (epoch == 4)
+					if (epoch == 99)
 					{
 						printf("Final error: %f, avg: %f\n", error, error/(DBSize*10));
 					}
@@ -334,7 +334,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				SearchResult go = go_alphabeta(2 + (rand()%2));
 				
 				m = go.m;
-				eval = go.eval / 100.0;
+				eval = LeafEval_MatOnly() / 100.0;
 				if (CurrentPos.Turn == COLOR_BLACK)
 				{
 					eval = -eval;
@@ -390,10 +390,11 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 		Float gamma = 0.1;
 		for (uint64_t i = start_pos_id; i < DBSize - 1; i++)
 		{
-			Float current_gamma = 1.0;
+			Float current_gamma = 0.0;
 			Float sum = 0.0;
 			for (uint64_t j = i; j < DBSize - 1; j++)
 			{
+				//printf("%d %d %f %f %f\n", i, j, Database[j + 1].eval, Database[j].eval, sum);
 				sum += current_gamma*(Database[j + 1].eval - Database[j].eval);
 				current_gamma *= gamma;
 			}

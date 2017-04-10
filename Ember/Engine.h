@@ -92,7 +92,7 @@ public:
 	Move getNextMove_NN(std::vector<Move>& moves, int current_move, int ply);
 
 	//QSearch
-	int QuiescenceSearch(int alpha, int beta);
+	int QSearch(int alpha, int beta);
 	int StaticExchangeEvaluation(int to, int from, int movpiece, int capt);
 
 	//Learning

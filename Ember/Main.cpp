@@ -16,14 +16,30 @@ int main()
 #ifdef TRAINING_BUILD
 	Engine e;
 	printf("Loading weights\n");
-	e.load_nets(path);
+	//e.load_nets(path);
 	printf("Starting training\n");
+
+	for (int i = 0;i < 5;i++)
+	{
+		printf("%f ", e.NetPlay->mBoard->mOptimizer->Variables[0]->Data(i));
+		printf("%f ", e.NetTrain->mBoard->mOptimizer->Variables[0]->Data(i));
+	}
+	printf("\n");
 	
-	//e.learn_eval_TD(10000, 30*60);
+	e.learn_eval(650);
 	
 	printf("Saving weights\n");
-	//e.NetTrain->save(path);
+	e.NetTrain->save(path);
 	printf("Done\n");
+
+	e.NetPlay->mBoard->copy_variables(e.NetTrain->mBoard);
+
+	for (int i = 0;i < 5;i++)
+	{
+		printf("%f ", e.NetPlay->mBoard->mOptimizer->Variables[0]->Data(i));
+		printf("%f ", e.NetTrain->mBoard->mOptimizer->Variables[0]->Data(i));
+	}
+	printf("\n");
 
 	e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/4QB2/2P2N2/P4PPP/1R2K2R b K - 2 0");
 	e.CurrentPos.display(0);

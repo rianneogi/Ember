@@ -89,6 +89,35 @@ void EvalNet::init_net()
 	/*Input_Pos->Data.setzero();
 	printf("go\n");
 	mBoard->forward(Input_Pos->Data).print();*/
+
+
+	//mBoard = new Board();
+	//Input_Pos = mBoard->newBlob(make_shape(BatchSize* 8*8,  14));
+	//ConvKing = mBoard->newBlob(make_shape(BatchSize * 6 * 6, 14 * 9));
+	//FCKing = mBoard->newBlob(make_shape(BatchSize * 8*8, 1));
+	//ActKing = mBoard->newBlob(make_shape(BatchSize, 8*8)); //resize in activation neuron
+
+	//FullFC = mBoard->newBlob(make_shape(BatchSize, 10));
+	//FullFCAct = mBoard->newBlob(make_shape(BatchSize, 10));
+	//OutputMoveFC = mBoard->newBlob(make_shape(BatchSize, 2, 64));
+	//Output_Move = mBoard->newBlob(make_shape(BatchSize, 2, 64));
+	//OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
+	//Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
+
+	//mBoard->setOptimizer(new AdamOptimizer(0.001));
+
+	////mBoard->addNeuron(new Im2ColNeuron(Input_Pos, ConvKing, 3, 3));
+	//mBoard->addNeuron(new ConvNeuron(Input_Pos, FCKing, 1));
+	//mBoard->addNeuron(new LeakyReLUNeuron(FCKing, ActKing, 0.05));
+	////mBoard->addNeuron(new FullyConnectedNeuron(ActKing, FullFC1, 1));
+	////mBoard->addNeuron(new LeakyReLUNeuron(FullFC1, FullFCAct1, 0.05));
+	////mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputMoveFC, 1));
+	////mBoard->addNeuron(new TanhNeuron(OutputMoveFC, Output_Move));
+	//mBoard->addNeuron(new FullyConnectedNeuron(ActKing, OutputEvalFC, 1));
+	//mBoard->addNeuron(new LeakyReLUNeuron(OutputEvalFC, Output_Eval, 1));
+
+	////mBoard->addErrorFunction(new MeanSquaredError(Input, Output_Move, nullptr));
+	//mBoard->addErrorFunction(new L1Error(Input_Pos, Output_Eval));
 }
 
 Float EvalNet::train(Tensor inputs, Tensor* output_eval, Tensor* output_move)

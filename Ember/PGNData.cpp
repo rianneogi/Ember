@@ -21,7 +21,7 @@ void PGNData::loadFromFile(std::string file)
 	using std::endl;
 
 	//int fenformat = 0;
-	std::fstream f("pgn.pgn", std::ios::in);
+	std::fstream f(file, std::ios::in);
 	if (!f.is_open())
 	{
 		cout << "ERROR: cant open file: " << file << endl;
@@ -77,9 +77,14 @@ void PGNData::loadFromFile(std::string file)
 				else
 					phase = SEARCH;
 
-				if (movestr.at(0) >= '0' && movestr.at(0) <= '9') //found result
+				if ((movestr.at(0) >= '0' && movestr.at(0) <= '9') || movestr == "*") //found result
 				{
 					int change = 0;
+					if (movestr == "*")
+					{
+						currentGame.Result = -1;
+						change = 1;
+					}
 					if (movestr == "1-0")
 					{
 						currentGame.Result = 1;
@@ -193,13 +198,14 @@ void PGNData::loadFromFile(std::string file)
 
 void PGNData::printData()
 {
+	printf("%d\n", Games.size());
 	for (int i = 0; i < Games.size(); i++)
 	{
 		for (int j = 0; j > Games[i].Moves.size(); j++)
 		{
-			std::cout << Games[i].Moves[j].toString() << " ";
+			printf("%s ", Games[i].Moves[j].toString().c_str());
 		}
-		std::cout << std::endl;
+		printf("\n");
 	}
 }
 

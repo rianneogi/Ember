@@ -13,6 +13,10 @@ int main()
 
 	std::string path = "Data/variables_superconv.bin";
 
+	PGNData pgn("Data/KingBase/KingBase2016-03-A80-A99.pgn");
+	pgn.printData();
+	_getch();
+
 #ifdef TRAINING_BUILD
 	Engine e;
 	printf("Loading weights\n");

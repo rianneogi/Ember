@@ -24,3 +24,5 @@ public:
 	void printData();
 };
 
+std::string convertMoveNotation(std::string move, Position& pos);
+

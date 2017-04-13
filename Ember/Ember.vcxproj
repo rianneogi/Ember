@@ -27,6 +27,7 @@
     <ClCompile Include="Move.cpp" />
     <ClCompile Include="MoveSort.cpp" />
     <ClCompile Include="EvalNet.cpp" />
+    <ClCompile Include="PGNData.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="PositionNN.cpp" />
     <ClCompile Include="QSearch.cpp" />
@@ -41,6 +42,7 @@
     <ClInclude Include="MagicBitboards.h" />
     <ClInclude Include="Move.h" />
     <ClInclude Include="EvalNet.h" />
+    <ClInclude Include="PGNData.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="PositionNN.h" />
     <ClInclude Include="SortNet.h" />

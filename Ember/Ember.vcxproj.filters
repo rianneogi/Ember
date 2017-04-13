@@ -60,6 +60,9 @@
     <ClCompile Include="QSearch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PGNData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EvalNet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PGNData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

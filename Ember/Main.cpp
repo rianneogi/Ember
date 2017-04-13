@@ -26,7 +26,7 @@ int main()
 	}
 	printf("\n");
 	
-	e.learn_eval(650);
+	e.learn_eval_TD(10000, 30*60);
 	
 	printf("Saving weights\n");
 	e.NetTrain->save(path);

@@ -11,39 +11,24 @@ int main()
 	magicinit();
 	datainit();
 
-	std::string path = "Data/variables_superconv.bin";
-
-	PGNData pgn("Data/KingBase/KingBase2016-03-A80-A99.pgn");
-	pgn.printData();
-	_getch();
+	std::string path_weights = "Data/variables_superconv.bin";
+	std::string path_pgn = "Data/KingBase/KingBase2016-03-A80-A99.pgn";
 
 #ifdef TRAINING_BUILD
 	Engine e;
 	printf("Loading weights\n");
-	//e.load_nets(path);
+	//e.load_nets(path_weights);
 	printf("Starting training\n");
 
-	for (int i = 0;i < 5;i++)
-	{
-		printf("%f ", e.NetPlay->mBoard->mOptimizer->Variables[0]->Data(i));
-		printf("%f ", e.NetTrain->mBoard->mOptimizer->Variables[0]->Data(i));
-	}
-	printf("\n");
+	PGNData pgn(path_pgn);
 	
 	e.learn_eval_TD(10000, 30*60);
 	
 	printf("Saving weights\n");
-	e.NetTrain->save(path);
+	e.NetTrain->save(path_weights);
 	printf("Done\n");
 
 	e.NetPlay->mBoard->copy_variables(e.NetTrain->mBoard);
-
-	for (int i = 0;i < 5;i++)
-	{
-		printf("%f ", e.NetPlay->mBoard->mOptimizer->Variables[0]->Data(i));
-		printf("%f ", e.NetTrain->mBoard->mOptimizer->Variables[0]->Data(i));
-	}
-	printf("\n");
 
 	e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/4QB2/2P2N2/P4PPP/1R2K2R b K - 2 0");
 	e.CurrentPos.display(0);
@@ -64,7 +49,7 @@ int main()
 
 #else
 	UCI uci;
-	uci.Ember.load_nets(path);
+	uci.Ember.load_nets(path_weights);
 	uci.run_uci();
 #endif
 

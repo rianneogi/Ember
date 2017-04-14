@@ -128,6 +128,8 @@ void PGNData::loadFromFile(std::string file)
 						//	//poscount++;
 						//}
 						Games.push_back(currentGame);
+						//printf("%s ", currentGame.Moves[0].toString());
+						//printf("%s ", Games[Games.size()-1].Moves[0].toString());
 						currentGame = PGNGame();
 
 						pos.setStartPos();
@@ -201,9 +203,10 @@ void PGNData::printData()
 	printf("%d\n", Games.size());
 	for (int i = 0; i < Games.size(); i++)
 	{
-		for (int j = 0; j > Games[i].Moves.size(); j++)
+		for (int j = 0; j < Games[i].Moves.size(); j++)
 		{
 			printf("%s ", Games[i].Moves[j].toString().c_str());
+			//printf("%d ", Games[i].Result);
 		}
 		printf("\n");
 	}

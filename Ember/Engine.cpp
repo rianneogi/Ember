@@ -452,17 +452,17 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 	Clock timer;
 	timer.Start();
 
-	size_t play_count = 12;
+	int play_count = 12;
 	size_t games_filled = 0;
 
 	Position StartPos;
 
-	for (uint64_t i = 0; i < pgn.Games.size(); i++)
+	for (size_t i = 0; i < pgn.Games.size(); i++)
 	{
 		printf("Game: %d\n", i + 1);
 		StartPos.setStartPos();
 
-		for (uint64_t j = 0; j < pgn.Games[i].Moves.size(); j++)
+		for (size_t j = 0; j < pgn.Games[i].Moves.size(); j++)
 		{
 			CurrentPos = StartPos;
 
@@ -498,25 +498,30 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 				d->eval = LeafEval_MatOnly();
 				moveToTensor(m, &d->move);*/
 
-				pos2posNN(&InputTensor(k * 8 * 8 * 14), CurrentPos);
-				OutputEvalTensor(k) = search.eval;
+				uint64_t id = games_filled*play_count + k;
+
+				pos2posNN(&InputTensor(id * 8 * 8 * 14), CurrentPos);
+
+				if (CurrentPos.Turn == COLOR_BLACK)
+					search.eval = -search.eval;
+				OutputEvalTensor(id) = search.eval/100.0;
 
 				CurrentPos.makeMove(m);
 				int status = CurrentPos.getGameStatus();
 				if (status != STATUS_NOTOVER || CurrentPos.movelist.size() > 100)
 				{
-					game_end_pos = k;
+					game_end_pos = k+1;
 					break;
 				}
 			}
 
 			//Apply TD
-			Float gamma = 0.1;
-			for (size_t k = games_filled*play_count; k < games_filled*play_count + game_end_pos; k++)
+			Float gamma = 0.5;
+			for (size_t k = games_filled*play_count; k < games_filled*play_count + game_end_pos - 1; k++)
 			{
 				Float current_gamma = gamma;
 				Float sum = 0.0;
-				for (size_t l = k; l < games_filled*play_count + game_end_pos; l++)
+				for (size_t l = k; l < games_filled*play_count + game_end_pos - 1; l++)
 				{
 					//printf("%d %d %f %f %f\n", i, j, Database[j + 1].eval, Database[j].eval, sum);
 					sum += current_gamma*(OutputEvalTensor(l + 1) - OutputEvalTensor(l));
@@ -537,7 +542,7 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 				games_filled = 0;
 
 				//Train
-				int num_epochs = 1;
+				int num_epochs = 10;
 				int num_runs = 1;
 				Float error = 0;
 				for (int epoch = 0; epoch < num_epochs; epoch++)

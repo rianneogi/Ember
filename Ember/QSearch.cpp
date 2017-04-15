@@ -33,7 +33,7 @@ int Engine::QSearch(int alpha, int beta)
 	//else
 	//{
 #ifdef TRAINING_BUILD
-	stand_pat = LeafEval();
+	stand_pat = LeafEval_MatOnly();
 #else
 	stand_pat = LeafEval_NN();
 #endif

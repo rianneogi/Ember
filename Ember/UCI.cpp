@@ -1,7 +1,7 @@
 #include "UCI.h"
 
 std::string ENGINENAME = "Ember";
-std::string ENGINEVERSION = "Superconv";
+std::string ENGINEVERSION = "Classic Nullmove";
 std::string ENGINEAUTHOR = "Rian Neogi";
 
 UCI::UCI()

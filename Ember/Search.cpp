@@ -144,6 +144,33 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		}
 	}
 
+#ifdef DO_NULL_MOVE
+	Bitset Pieces = CurrentPos.OccupiedSq ^ CurrentPos.Pieces[COLOR_WHITE][PIECE_PAWN] ^ CurrentPos.Pieces[COLOR_BLACK][PIECE_PAWN];
+	int pieceCount = popcnt(Pieces);
+	if (depth >= 3 && ply >= 0 && CurrentPos.underCheck(CurrentPos.Turn) == false 
+		&& CurrentPos.movelist[CurrentPos.movelist.size()-1].isNullMove() == false
+		&& (pieceCount>2) //side to move does not have only pawns(to avoid zugzwang)
+						  //&& Evaluation[ply] >= beta
+		)
+	{
+		int R = depth > 5 ? 3 : 2; //dynamic depth-based reduction
+		//int R = ((823 + 67 * depth) / 256 + std::min(max(0, Evaluation[ply] - beta) / PieceMaterial[PIECE_PAWN], 3));
+		Move m = createNullMove(CurrentPos.EPSquare);
+
+		CurrentPos.makeMove(m);
+		int score = -AlphaBeta(-beta, -beta + 1, std::max(0, depth - R), ply+1); //make a null-window search (we don't care by how much it fails high, if it does)
+		CurrentPos.unmakeMove(m);
+
+		if (score >= beta)
+		{
+			//cout << "Null move cutoff " << beta << endl;
+			/*if (probe.avoidnull)
+			badavoidnull++;*/
+			return score;
+		}
+	}
+#endif
+
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);

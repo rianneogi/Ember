@@ -18,11 +18,13 @@ int main()
 	Engine e;
 	printf("Loading weights\n");
 	//e.load_nets(path_weights);
-	printf("Starting training\n");
-
+	
+	printf("Loading pgn\n");
 	PGNData pgn(path_pgn);
 	
-	e.learn_eval_TD(10000, 30*60);
+	printf("Starting training\n");
+
+	e.learn_eval_TD_pgn(pgn, 1*60);
 	
 	printf("Saving weights\n");
 	e.NetTrain->save(path_weights);

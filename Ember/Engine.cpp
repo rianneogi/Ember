@@ -3,7 +3,7 @@
 const int DATABASE_MAX_SIZE = 6400;
 const int CONST_INF = 10000;
 
-const int BATCH_SIZE = 128;
+const int BATCH_SIZE = 144;
 
 Engine::Engine()
 	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 8, 8, 14)),
@@ -448,357 +448,110 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 
 void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 {
-	TimeMode = MODE_DEPTH;
-
 	uint64_t c = 0;
 	Clock timer;
 	timer.Start();
 
-	int epsilon = 75;
-	int my_side = 0;
+	size_t play_count = 12;
+	size_t games_filled = 0;
 
-	float wins = 0;
-
-	int start_pos_id;
+	Position StartPos;
 
 	for (uint64_t i = 0; i < pgn.Games.size(); i++)
 	{
 		printf("Game: %d\n", i + 1);
-		if (i != 0)
-			printf("wr: %f\n", (wins*1.0) / i);
-		CurrentPos.setStartPos();
-		//DBSize = 0;
-		//DBCounter = 0;
-		my_side = (my_side + 1) % 2;
-		start_pos_id = DBCounter;
-		while (true)
+		StartPos.setStartPos();
+
+		for (uint64_t j = 0; j < pgn.Games[i].Moves.size(); j++)
 		{
-			timer.Stop();
-			if (timer.ElapsedSeconds() >= time_limit)
-				return;
+			CurrentPos = StartPos;
 
-			Move m = createNullMove(CurrentPos.EPSquare);
-			Float eval = 0.0;
+			//Make random move
+			std::vector<Move> moves;
+			moves.reserve(128);
+			CurrentPos.generateMoves(moves);
 
-			//Make a move
-			int r1 = rand() % 100;
-			if (r1 < epsilon && CurrentPos.Turn != my_side)
+			Move m = moves[rand() % moves.size()];
+			while (!CurrentPos.isMoveLegal(m))
 			{
-				//printf("rand\n");
-				std::vector<Move> moves;
-				moves.reserve(128);
-				CurrentPos.generateMoves(moves);
-
 				m = moves[rand() % moves.size()];
-				while (!CurrentPos.isMoveLegal(m))
-				{
-					m = moves[rand() % moves.size()];
-				}
-				assert(m.isNullMove() == false);
-
-				//GoReturn go = go_alphabeta(2);
-
-				eval = LeafEval_NN() / 100.0;
-				if (CurrentPos.Turn == COLOR_BLACK)
-				{
-					eval = -eval;
-				}
 			}
-			else
-			{
-				//printf("n\n");
-				Bitset hash = CurrentPos.HashKey;
-
-				SearchResult go = go_alphabeta(2 + (rand()%2));
-				
-				m = go.m;
-				eval = LeafEval_MatOnly() / 100.0;
-				if (CurrentPos.Turn == COLOR_BLACK)
-				{
-					eval = -eval;
-				}
-				assert(m.isNullMove() == false);
-				assert(CurrentPos.HashKey == hash);
-			}
-			assert(eval >= -CONST_INF / 100 && eval <= CONST_INF / 100);
-
-			//Save position
-			if (my_side == CurrentPos.Turn)
-			{
-				Data* d = &Database[DBCounter];
-				d->pos.copyFromPosition(CurrentPos);
-				d->eval = eval;
-				moveToTensor(m, &d->move);
-				//assert(abs(eval) != 100);
-
-				DBCounter++;
-				if (DBCounter == DATABASE_MAX_SIZE)
-				{
-					DBCounter = 0;
-					start_pos_id = 0;
-					printf("Counter reset: %d\n", CurrentPos.movelist.size());
-				}
-
-				if (DBSize < DATABASE_MAX_SIZE)
-				{
-					DBSize++;
-				}
-			}
-			
 			assert(m.isNullMove() == false);
 			CurrentPos.makeMove(m);
-			int status = CurrentPos.getGameStatus();
-			if (status != STATUS_NOTOVER || CurrentPos.movelist.size()>100)
+
+			//Play game
+			printf("subgame %d\n", games_filled+1);
+			int game_end_pos = play_count;
+			for (int k = 0; k < play_count; k++)
 			{
-				if (status == STATUS_WHITEMATED && my_side == COLOR_BLACK)
-					wins += 1;
-				if (status == STATUS_BLACKMATED && my_side == COLOR_WHITE)
-					wins += 1;
-				if (isStatusDraw(status))
-					wins += 0.5;
-				if (CurrentPos.movelist.size() > 100)
-				{
-					wins += 0.5;
-				}
-				break;
-			}
-			c++;
-		}
+				timer.Stop();
+				if (timer.ElapsedSeconds() >= time_limit)
+					return;
 
-		Float gamma = 0.1;
-		for (uint64_t i = start_pos_id; i < DBSize - 1; i++)
-		{
-			Float current_gamma = 0.0;
-			Float sum = 0.0;
-			for (uint64_t j = i; j < DBSize - 1; j++)
-			{
-				//printf("%d %d %f %f %f\n", i, j, Database[j + 1].eval, Database[j].eval, sum);
-				sum += current_gamma*(Database[j + 1].eval - Database[j].eval);
-				current_gamma *= gamma;
-			}
-			printf("eval: %f, sum: %f\n", Database[i].eval, sum + Database[i].eval);
-			Database[i].eval = Database[i].eval + sum;
-		}
-	
-		//Train
-		int num_epochs = 10;
-		int num_runs = 1;
-		Float error = 0;
-		for (int epoch = 0; epoch < num_epochs; epoch++)
-		{
-			error = 0;
-			for (int batch = 0; batch < DBSize / BatchSize; batch++)
-			{
-				for (uint64_t i = 0; i < BatchSize; i++)
-				{
-					size_t id = batch*BatchSize + i;
-					memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
-					//memcpy(&OutputMoveTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
+				SearchResult search = go(MODE_MOVETIME, 350, 350, 0, 0, false);
+				m = search.m;
 
-					OutputEvalTensor(i) = Database[id].eval;
-				}
-				for (int run = 0; run < num_runs; run++)
-				{
-					error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
-					//updateVariables_TD(batch*BatchSize, BatchSize);
-				}
-			}
-			//if (DBSize%BatchSize != 0) //last batch
-			//{
-			//	printf("______LAST_______\n");
-			//	for (uint64_t i = 0; i < DBSize%BatchSize; i++)
-			//	{
-			//		size_t id = DBSize - DBSize%BatchSize + i;
-			//		memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
-			//		//memcpy(&OutputMoveTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
-			//		OutputEvalTensor(i) = Database[id].eval;
-			//	}
-			//	for (int run = 0; run < num_runs; run++)
-			//	{
-			//		error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
-			//		updateVariables_TD(DBSize%BatchSize);
-			//	}
-			//}
-		}
-		printf("Final error: %f, avg: %f, movecount: %d\n", error, error / (DBSize*num_epochs), CurrentPos.movelist.size());
-	}
-}
-
-void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
-{
-	TimeMode = MODE_DEPTH;
-
-	uint64_t c = 0;
-	Clock timer;
-	timer.Start();
-
-	int epsilon = 75;
-	int my_side = 0;
-
-	float wins = 0;
-
-	int start_pos_id;
-
-	for (uint64_t i = 0; i < num_games; i++)
-	{
-		printf("Game: %d\n", i + 1);
-		if (i != 0)
-			printf("wr: %f\n", (wins*1.0) / i);
-		CurrentPos.setStartPos();
-		//DBSize = 0;
-		//DBCounter = 0;
-		my_side = (my_side + 1) % 2;
-		start_pos_id = DBCounter;
-		while (true)
-		{
-			timer.Stop();
-			if (timer.ElapsedSeconds() >= time_limit)
-				return;
-
-			Move m = createNullMove(CurrentPos.EPSquare);
-			Float eval = 0.0;
-
-			//Make a move
-			int r1 = rand() % 100;
-			if (r1 < epsilon && CurrentPos.Turn != my_side)
-			{
-				//printf("rand\n");
-				std::vector<Move> moves;
-				moves.reserve(128);
-				CurrentPos.generateMoves(moves);
-
-				m = moves[rand() % moves.size()];
-				while (!CurrentPos.isMoveLegal(m))
-				{
-					m = moves[rand() % moves.size()];
-				}
 				assert(m.isNullMove() == false);
 
-				//GoReturn go = go_alphabeta(2);
-
-				eval = LeafEval_NN() / 100.0;
-				if (CurrentPos.Turn == COLOR_BLACK)
-				{
-					eval = -eval;
-				}
-			}
-			else
-			{
-				//printf("n\n");
-				Bitset hash = CurrentPos.HashKey;
-
-				SearchResult go = go_alphabeta(2 + (rand() % 2));
-
-				m = go.m;
-				eval = LeafEval_MatOnly() / 100.0;
-				if (CurrentPos.Turn == COLOR_BLACK)
-				{
-					eval = -eval;
-				}
-				assert(m.isNullMove() == false);
-				assert(CurrentPos.HashKey == hash);
-			}
-			assert(eval >= -CONST_INF / 100 && eval <= CONST_INF / 100);
-
-			//Save position
-			if (my_side == CurrentPos.Turn)
-			{
-				Data* d = &Database[DBCounter];
+				/*Data* d = &Database[k];
 				d->pos.copyFromPosition(CurrentPos);
-				d->eval = eval;
-				moveToTensor(m, &d->move);
-				//assert(abs(eval) != 100);
+				d->eval = LeafEval_MatOnly();
+				moveToTensor(m, &d->move);*/
 
-				DBCounter++;
-				if (DBCounter == DATABASE_MAX_SIZE)
-				{
-					DBCounter = 0;
-					start_pos_id = 0;
-					printf("Counter reset: %d\n", CurrentPos.movelist.size());
-				}
+				pos2posNN(&InputTensor(k * 8 * 8 * 14), CurrentPos);
+				OutputEvalTensor(k) = search.eval;
 
-				if (DBSize < DATABASE_MAX_SIZE)
+				CurrentPos.makeMove(m);
+				int status = CurrentPos.getGameStatus();
+				if (status != STATUS_NOTOVER || CurrentPos.movelist.size() > 100)
 				{
-					DBSize++;
+					game_end_pos = k;
+					break;
 				}
 			}
 
-			assert(m.isNullMove() == false);
-			CurrentPos.makeMove(m);
-			int status = CurrentPos.getGameStatus();
-			if (status != STATUS_NOTOVER || CurrentPos.movelist.size()>100)
+			//Apply TD
+			Float gamma = 0.1;
+			for (size_t k = games_filled*play_count; k < games_filled*play_count + game_end_pos; k++)
 			{
-				if (status == STATUS_WHITEMATED && my_side == COLOR_BLACK)
-					wins += 1;
-				if (status == STATUS_BLACKMATED && my_side == COLOR_WHITE)
-					wins += 1;
-				if (isStatusDraw(status))
-					wins += 0.5;
-				if (CurrentPos.movelist.size() > 100)
+				Float current_gamma = gamma;
+				Float sum = 0.0;
+				for (size_t l = k; l < games_filled*play_count + game_end_pos; l++)
 				{
-					wins += 0.5;
+					//printf("%d %d %f %f %f\n", i, j, Database[j + 1].eval, Database[j].eval, sum);
+					sum += current_gamma*(OutputEvalTensor(l + 1) - OutputEvalTensor(l));
+					current_gamma *= gamma;
 				}
-				break;
+				printf("eval: %f, sum: %f\n", OutputEvalTensor(k), sum + OutputEvalTensor(k));
+				OutputEvalTensor(k) = OutputEvalTensor(k) + sum;
 			}
-			c++;
-		}
+			games_filled++;
 
-		Float gamma = 0.1;
-		for (uint64_t i = start_pos_id; i < DBSize - 1; i++)
-		{
-			Float current_gamma = 0.0;
-			Float sum = 0.0;
-			for (uint64_t j = i; j < DBSize - 1; j++)
+			//Continue game
+			assert(pgn.Games[i].Moves[j].isNullMove() == false);
+			StartPos.makeMove(pgn.Games[i].Moves[j]);
+
+			//Batch is filled, start training
+			if (games_filled >= BatchSize / play_count)
 			{
-				//printf("%d %d %f %f %f\n", i, j, Database[j + 1].eval, Database[j].eval, sum);
-				sum += current_gamma*(Database[j + 1].eval - Database[j].eval);
-				current_gamma *= gamma;
-			}
-			printf("eval: %f, sum: %f\n", Database[i].eval, sum + Database[i].eval);
-			Database[i].eval = Database[i].eval + sum;
-		}
+				games_filled = 0;
 
-		//Train
-		int num_epochs = 10;
-		int num_runs = 1;
-		Float error = 0;
-		for (int epoch = 0; epoch < num_epochs; epoch++)
-		{
-			error = 0;
-			for (int batch = 0; batch < DBSize / BatchSize; batch++)
-			{
-				for (uint64_t i = 0; i < BatchSize; i++)
+				//Train
+				int num_epochs = 1;
+				int num_runs = 1;
+				Float error = 0;
+				for (int epoch = 0; epoch < num_epochs; epoch++)
 				{
-					size_t id = batch*BatchSize + i;
-					memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
-					//memcpy(&OutputMoveTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
-
-					OutputEvalTensor(i) = Database[id].eval;
+					error = 0;
+					for (int run = 0; run < num_runs; run++)
+					{
+						error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+						//updateVariables_TD(batch*BatchSize, BatchSize);
+					}
 				}
-				for (int run = 0; run < num_runs; run++)
-				{
-					error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
-					//updateVariables_TD(batch*BatchSize, BatchSize);
-				}
+				printf("Final error: %f, avg: %f, movecount: %d\n", error, error / (BatchSize*num_epochs), CurrentPos.movelist.size());
 			}
-			//if (DBSize%BatchSize != 0) //last batch
-			//{
-			//	printf("______LAST_______\n");
-			//	for (uint64_t i = 0; i < DBSize%BatchSize; i++)
-			//	{
-			//		size_t id = DBSize - DBSize%BatchSize + i;
-			//		memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
-			//		//memcpy(&OutputMoveTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
-			//		OutputEvalTensor(i) = Database[id].eval;
-			//	}
-			//	for (int run = 0; run < num_runs; run++)
-			//	{
-			//		error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
-			//		updateVariables_TD(DBSize%BatchSize);
-			//	}
-			//}
 		}
-		printf("Final error: %f, avg: %f, movecount: %d\n", error, error / (DBSize*num_epochs), CurrentPos.movelist.size());
 	}
 }
 

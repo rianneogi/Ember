@@ -11,7 +11,7 @@ int getNPS(int nodes, int milliseconds)
 	return 0;
 }
 
-Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
+SearchResult Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 {
 	NodeCount = 0;
 	BetaCutoffCount = 0;
@@ -45,8 +45,9 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 		MAXDEPTH = wtime;
 	}
 
-	std::cout << "info string Allocated time: " << AllocatedTime << std::endl;
-	Move bestmove = CONST_NULLMOVE;
+	if(print)
+		std::cout << "info string Allocated time: " << AllocatedTime << std::endl;
+	SearchResult best(CONST_NULLMOVE, -1);
 
 	int initial_move_number = CurrentPos.movelist.size();
 
@@ -57,26 +58,26 @@ Move Engine::go(int mode, int wtime, int btime, int winc, int binc, bool print)
 		{
 			CurrentPos.takebackMove();
 		}
-		return bestmove;
+		return best;
 	}
 
 	Timer.Reset();
 	Timer.Start();
 	for (int depth = 1; depth < MAXDEPTH; depth++)
 	{
-		SearchResult go = go_alphabeta(depth);
-		bestmove = go.m;
+		best = go_alphabeta(depth);
 
-		std::cout << "info score cp " << go.eval << " depth " << depth << " nodes " << NodeCount <<
-			" nps " << getNPS(NodeCount, Timer.ElapsedMilliseconds()) <<
-			" pv " << bestmove.toString() << std::endl;
+		if(print)
+			std::cout << "info score cp " << best.eval << " depth " << depth << " nodes " << NodeCount <<
+				" nps " << getNPS(NodeCount, Timer.ElapsedMilliseconds()) <<
+				" pv " << best.m.toString() << std::endl;
 		//std::cout << "info string Betacuff ratio: " << ((BetaCutoffCount*1.0) / NodeCount) << std::endl;
 		//std::cout << "info string Betacuff movecount: " << ((BetaCutoffValue*1.0) / BetaCutoffCount) << std::endl;
 
-		assert(go.eval >= -CONST_INF && go.eval <= CONST_INF);
-		assert(bestmove.isNullMove() == false);
+		assert(best.eval >= -CONST_INF && best.eval <= CONST_INF);
+		assert(best.m.isNullMove() == false);
 	}
-	return bestmove;
+	return best;
 }
 
 SearchResult Engine::go_alphabeta(int depth)
@@ -115,18 +116,16 @@ SearchResult Engine::go_alphabeta(int depth)
 int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 {
 	NodeCount++;
-#ifndef TRAINING_BUILD
 	if (NodeCount % 1028 == 0)
 	{
 		if(TimeMode==MODE_MOVETIME || TimeMode==MODE_DEFAULT)
 			checkup();
 	}
-#endif
 	
 	if (depth == 0)
 	{
 #ifdef TRAINING_BUILD
-		return LeafEval();
+		return QSearch(alpha, beta);
 #else
 		return QSearch(alpha, beta);
 #endif

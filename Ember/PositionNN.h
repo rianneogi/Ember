@@ -17,3 +17,4 @@ public:
 	void copyToPosition(Position& pos) const;
 };
 
+void pos2posNN(Float* posNN, const Position& pos);

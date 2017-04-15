@@ -32,7 +32,11 @@ int Engine::QSearch(int alpha, int beta)
 	//}
 	//else
 	//{
+#ifdef TRAINING_BUILD
+	stand_pat = LeafEval();
+#else
 	stand_pat = LeafEval_NN();
+#endif
 	//} 
 	if (stand_pat >= beta) //standpat
 	{

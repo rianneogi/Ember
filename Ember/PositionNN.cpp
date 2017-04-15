@@ -65,3 +65,15 @@ void PositionNN::copyToPosition(Position& pos) const
 		}
 	}
 }
+
+void pos2posNN(Float* posNN, const Position& pos)
+{
+	memset(posNN, 0, 14 * 8 * 8);
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 8; j++)
+		{
+			posNN[i * 14 * 8 + j * 14 + pos.Squares[i*8 + j]] = 1.0;
+		}
+	}
+}

@@ -361,8 +361,8 @@ void UCI::run_uci()
 			if (btime == 0)
 				btime = 1000;
 
-			Move m = Ember.go(mode, wtime, btime, winc, binc, true);
-			cout << "bestmove " << m.toString() << endl;
+			SearchResult m = Ember.go(mode, wtime, btime, winc, binc, true);
+			cout << "bestmove " << m.m.toString() << endl;
 			//e1.pos.forceMove(m);
 		}
 		else if (s == "setboard")

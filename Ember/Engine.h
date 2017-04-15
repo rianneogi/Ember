@@ -71,7 +71,7 @@ public:
 	void load_nets(std::string path);
 
 	//Search
-	Move go(int mode, int wtime, int btime, int winc, int binc, bool print);
+	SearchResult go(int mode, int wtime, int btime, int winc, int binc, bool print);
 
 	SearchResult go_alphabeta(int depth);
 	Move go_negamax(int depth);

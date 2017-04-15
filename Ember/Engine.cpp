@@ -459,7 +459,7 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 
 	for (size_t i = 0; i < pgn.Games.size(); i++)
 	{
-		printf("Game: %d\n", i + 1);
+		printf("\n-----GAME %d-----\n", i + 1);
 		StartPos.setStartPos();
 
 		for (size_t j = 0; j < pgn.Games[i].Moves.size(); j++)

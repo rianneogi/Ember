@@ -480,7 +480,7 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 			CurrentPos.makeMove(m);
 
 			//Play game
-			printf("subgame %d\n", games_filled+1);
+			printf("subgame %d, time left: %f\n", games_filled + 1, time_limit - timer.ElapsedSeconds());
 			int game_end_pos = play_count;
 			for (int k = 0; k < play_count; k++)
 			{
@@ -508,7 +508,7 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 
 				CurrentPos.makeMove(m);
 				int status = CurrentPos.getGameStatus();
-				if (status != STATUS_NOTOVER || CurrentPos.movelist.size() > 100)
+				if (status != STATUS_NOTOVER)
 				{
 					game_end_pos = k+1;
 					break;
@@ -554,7 +554,7 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 						//updateVariables_TD(batch*BatchSize, BatchSize);
 					}
 				}
-				printf("Final error: %f, avg: %f, movecount: %d\n", error, error / (BatchSize*num_epochs), CurrentPos.movelist.size());
+				printf("Final error: %f, avg: %f\n", error, error / (BatchSize*num_epochs));
 			}
 		}
 	}

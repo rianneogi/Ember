@@ -24,7 +24,7 @@ int main()
 	
 	printf("Starting training\n");
 
-	e.learn_eval_TD_pgn(pgn, 60*60);
+	e.learn_eval_TD_pgn(pgn, 3*60*60);
 	
 	printf("Saving weights\n");
 	e.NetTrain->save(path_weights);

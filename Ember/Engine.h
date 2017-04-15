@@ -2,7 +2,7 @@
 
 #include "SortNet.h"
 
-//#define TRAINING_BUILD
+#define TRAINING_BUILD
 #define DO_NULL_MOVE
 
 extern jmp_buf JumpEnv;
@@ -101,7 +101,7 @@ public:
 	void learn_eval_NN(uint64_t num_games, double time_limit);
 	void learn_eval_TD(uint64_t num_games, double time_limit);
 	void learn_eval_TD_pgn(const PGNData& pgn, double time_limit);
-	void updateVariables_TD(uint64_t start, uint64_t batch_size);
+	void learn_eval_pgn(const PGNData& pgn, double time_limit);
 
 
 	void checkup()

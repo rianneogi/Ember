@@ -196,9 +196,9 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 			{
 				Bitset hash = CurrentPos.HashKey;
 
-				SearchResult go = go_alphabeta(4 + (rand()%2));
-				m = go.m;
-				eval = go.eval;
+				SearchResult search = go(MODE_MOVETIME, 10, 10, 0, 0, false);
+				m = search.m;
+				eval = search.eval;
 				if (CurrentPos.Turn == COLOR_BLACK)
 				{
 					eval = -eval;
@@ -560,38 +560,73 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 	}
 }
 
-inline Float sign(Float f)
+void Engine::learn_eval_pgn(const PGNData& pgn, double time_limit)
 {
-	return (f > 0.0 ? 1.0 : (f == 0.0 ? 0.0 : -1.0));
-}
+	uint64_t c = 0;
+	Clock timer;
+	timer.Start();
 
-void Engine::updateVariables_TD(uint64_t start, uint64_t batch_size)
-{
-	Float gamma = 0.0;
-	Float learnin_rate = 0.0005;
-	Float avg_change = 0.0;
-	uint64_t count = 0;
-	for (uint64_t i = start; i < start+batch_size; i++)
+	int play_count = 12;
+	size_t games_filled = 0;
+
+	//Position StartPos;
+
+	for (size_t i = 0; i < pgn.Games.size(); i++)
 	{
-		Float sum = 0.0;
-		Float current_gamma = 1.0;
-		for (uint64_t j = i; j < DBSize-1; j++)
+		printf("\n-----GAME %d-----\n", i + 1);
+		CurrentPos.setStartPos();
+
+		for (size_t j = 0; j < pgn.Games[i].Moves.size(); j++)
 		{
-			sum += current_gamma*(Database[j+1].eval - Database[j].eval);
-			current_gamma *= gamma;
-		}
-		printf("sum: %f, move: %s, eval: %f, diff: %f\n", sum, tensorToMove(&Database[i].move).toString(), Database[i].eval, Database[i + 1].eval - Database[i].eval);
-		const Optimizer* opt = NetTrain->mBoard->mOptimizer;
-		for (size_t j = 0; j < opt->Variables.size(); j++)
-		{ 
-			for (uint64_t k = 0; k < opt->Variables[j]->Delta.mSize; k++)
+			timer.Stop();
+			if (timer.ElapsedSeconds() >= time_limit)
+				return;
+
+			//CurrentPos = StartPos;
+
+			//Make random move
+			/*std::vector<Move> moves;
+			moves.reserve(128);
+			CurrentPos.generateMoves(moves);
+
+			Move m = moves[rand() % moves.size()];
+			while (!CurrentPos.isMoveLegal(m))
 			{
-				opt->Variables[j]->Data(k) += learnin_rate*(opt->Variables[j]->Delta(k))*sum;
-				avg_change += abs(learnin_rate*opt->Variables[j]->Delta(k)*sum);
-				count++;
+				m = moves[rand() % moves.size()];
 			}
+			assert(m.isNullMove() == false);
+			CurrentPos.makeMove(m);*/
+			printf("  ---Move %d---\n", j+1);
+			//Play game
+			SearchResult search = go(MODE_DEPTH, 4, 1000, 0, 0, false);
+
+			
+			//games_filled++;
+
+			//Continue game
+			assert(pgn.Games[i].Moves[j].isNullMove() == false);
+			CurrentPos.makeMove(pgn.Games[i].Moves[j]);
+
+			//Batch is filled, start training
+			//if (games_filled >= BatchSize / play_count)
+			//{
+			//	games_filled = 0;
+
+			//	//Train
+			//	int num_epochs = 10;
+			//	int num_runs = 1;
+			//	Float error = 0;
+			//	for (int epoch = 0; epoch < num_epochs; epoch++)
+			//	{
+			//		error = 0;
+			//		for (int run = 0; run < num_runs; run++)
+			//		{
+			//			error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+			//			//updateVariables_TD(batch*BatchSize, BatchSize);
+			//		}
+			//	}
+			//	printf("Final error: %f, avg: %f\n", error, error / (BatchSize*num_epochs));
+			//}
 		}
 	}
-	printf("avg change: %f\n", avg_change / count);
-	//NetPlay->mBoard->copy_variables(NetTrain->mBoard);
 }

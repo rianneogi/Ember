@@ -363,7 +363,6 @@ void UCI::run_uci()
 
 			SearchResult m = Ember.go(mode, wtime, btime, winc, binc, true);
 			cout << "bestmove " << m.m.toString() << endl;
-			//e1.pos.forceMove(m);
 		}
 		else if (s == "setboard")
 		{
@@ -375,7 +374,6 @@ void UCI::run_uci()
 			int tokennumber = 3;
 			if (s == "startpos")
 			{
-				//e1.pos = Position();
 				Ember.CurrentPos.setStartPos();
 			}
 			else if (s == "fen")

@@ -17,17 +17,17 @@ int main()
 #ifdef TRAINING_BUILD
 	Engine e;
 	printf("Loading weights\n");
-	e.load_nets(path_weights);
+	//e.load_nets(path_weights);
 	
 	printf("Loading pgn\n");
 	PGNData pgn(path_pgn);
 	
 	printf("Starting training\n");
 
-	e.learn_eval_TD_pgn(pgn, 3*60*60);
+	e.learn_eval_pgn(pgn, 60);
 	
 	printf("Saving weights\n");
-	e.NetTrain->save(path_weights);
+	//e.NetTrain->save(path_weights);
 	printf("Done\n");
 
 	e.NetPlay->mBoard->copy_variables(e.NetTrain->mBoard);

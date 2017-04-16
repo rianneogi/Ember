@@ -36,6 +36,7 @@ void PositionNN::copyFromPosition(const Position& pos)
 
 void PositionNN::copyToPosition(Position& pos) const
 {
+	pos.clearBoard();
 	for (int i = 0; i < 64; i++)
 	{
 		for (int j = 0; j < 14; j++)
@@ -72,7 +73,7 @@ std::string PositionNN::toFEN()
 	int empty_count = 0;
 	for (int i = 63; i >= 0; i--)
 	{
-		if (Squares(i/8, i%8, SQUARE_EMPTY) == 1)
+		if (Squares(i/8, i%8, SQUARE_EMPTY) == 1.0)
 			empty_count++;
 		else
 		{
@@ -80,7 +81,7 @@ std::string PositionNN::toFEN()
 				res += std::to_string(empty_count);
 			for (int j = 0; j < 14; j++)
 			{
-				if (Squares(i / 8, i % 8, j) == 1)
+				if (Squares(i / 8, i % 8, j) == 1.0)
 					res += PieceStrings[j].at(0);
 			}
 			empty_count = 0;

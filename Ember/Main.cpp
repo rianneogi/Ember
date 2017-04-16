@@ -18,7 +18,7 @@ int main()
 	Engine e;
 	printf("Loading weights\n");
 	//e.load_nets(path_weights);
-	
+	//_set_error_mode(_OUT_TO_MSGBOX);
 	printf("Loading pgn\n");
 	PGNData pgn(path_pgn);
 	

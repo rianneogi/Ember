@@ -143,7 +143,7 @@ Float EvalNet::train(Tensor inputs, Tensor* output_eval, Tensor* output_move)
 	v.push_back(output_eval);
 	//v.push_back(output_move);
 	Float error = mBoard->backprop(inputs, v);
-	//mBoard->mOptimizer->optimize();
+	mBoard->mOptimizer->optimize();
 	return error;
 }
 

@@ -104,20 +104,37 @@ void EvalNet::init_net()
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
 	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
 
-	mBoard->setOptimizer(new AdamOptimizer(0.001));
+	mBoard->setOptimizer(new AdamOptimizer(1));
 
 	//mBoard->addNeuron(new Im2ColNeuron(Input_Pos, ConvKing, 3, 3));
-	mBoard->addNeuron(new ConvNeuron(Input_Pos, FCKing, 1));
-	mBoard->addNeuron(new LeakyReLUNeuron(FCKing, ActKing, 0.05));
+	Conv = new ConvNeuron(Input_Pos, FCKing, 1);
+	//assert(n1->Weights->Data.mSize == 14);
+	Conv->Weights->Data.setzero();
+	Conv->Weights->Data(SQUARE_BLACKBISHOP) = -3;
+	Conv->Weights->Data(SQUARE_BLACKKNIGHT) = -3;
+	Conv->Weights->Data(SQUARE_BLACKPAWN) = -1;
+	Conv->Weights->Data(SQUARE_BLACKQUEEN) = -9;
+	Conv->Weights->Data(SQUARE_BLACKROOK) = -5;
+	Conv->Weights->Data(SQUARE_WHITEBISHOP) = 3;
+	Conv->Weights->Data(SQUARE_WHITEKNIGHT) = 3;
+	Conv->Weights->Data(SQUARE_WHITEROOK) = 5;
+	Conv->Weights->Data(SQUARE_WHITEQUEEN) = 9;
+	Conv->Weights->Data(SQUARE_WHITEPAWN) = 1;
+	Conv->Biases->Data(0) = 0;
+	mBoard->addNeuron(Conv);
+	mBoard->addNeuron(new LeakyReLUNeuron(FCKing, ActKing, 1));
 	//mBoard->addNeuron(new FullyConnectedNeuron(ActKing, FullFC1, 1));
 	//mBoard->addNeuron(new LeakyReLUNeuron(FullFC1, FullFCAct1, 0.05));
 	//mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct1, OutputMoveFC, 1));
 	//mBoard->addNeuron(new TanhNeuron(OutputMoveFC, Output_Move));
-	mBoard->addNeuron(new FullyConnectedNeuron(ActKing, OutputEvalFC, 1));
-	mBoard->addNeuron(new LeakyReLUNeuron(OutputEvalFC, Output_Eval, 1));
+	FC1 = new FullyConnectedNeuron(ActKing, Output_Eval, 1);
+	FC1->Weights->Data.setconstant(1);
+	FC1->Biases->Data(0) = 0;
+	mBoard->addNeuron(FC1);
+	//mBoard->addNeuron(new LeakyReLUNeuron(OutputEvalFC, Output_Eval, 1));
 
-	//mBoard->addErrorFunction(new MeanSquaredError(Input_Pos, Output_Eval));
-	mBoard->addErrorFunction(new L1Error(Input_Pos, Output_Eval));
+	mBoard->addErrorFunction(new MeanSquaredError(Input_Pos, Output_Eval));
+	//mBoard->addErrorFunction(new L1Error(Input_Pos, Output_Eval));
 }
 
 Float EvalNet::train(Tensor inputs, Tensor* output_eval, Tensor* output_move)
@@ -126,7 +143,7 @@ Float EvalNet::train(Tensor inputs, Tensor* output_eval, Tensor* output_move)
 	v.push_back(output_eval);
 	//v.push_back(output_move);
 	Float error = mBoard->backprop(inputs, v);
-	mBoard->mOptimizer->optimize();
+	//mBoard->mOptimizer->optimize();
 	return error;
 }
 

@@ -6,6 +6,8 @@
 
 enum GAMESTATUS { STATUS_NOTOVER, STATUS_WHITEMATED, STATUS_BLACKMATED, STATUS_STALEMATE, STATUS_INSUFFICIENTMAT, STATUS_3FOLDREP };
 
+extern std::string PieceStrings[13];
+
 class Position
 {
 public:
@@ -92,6 +94,7 @@ public:
 	}
 
 	void display(int flip);
+	std::string toFEN();
 };
 
 inline Bitset getRookAttacks(int sq, Bitset occ)

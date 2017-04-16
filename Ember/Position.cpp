@@ -1,6 +1,6 @@
 #include "Position.h"
 
-std::string pieceStrings[] = { "- ","P ","N ","B ","R ","Q ","K ","p ","n ","b ","r ","q ","k " };
+std::string PieceStrings[13] = { "- ","P ","N ","B ","R ","Q ","K ","p ","n ","b ","r ","q ","k " };
 
 Position::Position()
 {
@@ -1202,11 +1202,30 @@ void Position::display(int flip)
 		if (i % 8 == 0)
 			printf("\n");
 		if (flip == 1)
-			printf("%s", pieceStrings[Squares[i]]);
+			printf("%s", PieceStrings[Squares[i]]);
 		else
-			printf("%s", pieceStrings[Squares[63 - i]]);
+			printf("%s", PieceStrings[Squares[63 - i]]);
 	}
 	printf("\n");
+}
+
+std::string Position::toFEN()
+{
+	std::string res = "";
+	int empty_count = 0;
+	for (int i = 63; i >= 0; i--)
+	{
+		if (Squares[i] == SQUARE_EMPTY)
+			empty_count++;
+		else
+		{
+			if (empty_count > 0)
+				res += std::to_string(empty_count);
+			res += PieceStrings[Squares[i]].at(0);
+			empty_count = 0;
+		}
+	}
+	return res;
 }
 
 void Position::clearBoard()

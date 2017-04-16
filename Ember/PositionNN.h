@@ -15,6 +15,8 @@ public:
 
 	void copyFromPosition(const Position& pos);
 	void copyToPosition(Position& pos) const;
+
+	std::string toFEN();
 };
 
 void pos2posNN(Float* posNN, const Position& pos);

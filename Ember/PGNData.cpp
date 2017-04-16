@@ -1,7 +1,5 @@
 #include "PGNData.h"
 
-std::string PieceStrings[] = { "- ","P ","N ","B ","R ","Q ","K ","p ","n ","b ","r ","q ","k " };
-
 PGNData::PGNData()
 {
 }

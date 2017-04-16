@@ -66,6 +66,29 @@ void PositionNN::copyToPosition(Position& pos) const
 	}
 }
 
+std::string PositionNN::toFEN()
+{
+	std::string res = "";
+	int empty_count = 0;
+	for (int i = 63; i >= 0; i--)
+	{
+		if (Squares(i/8, i%8, SQUARE_EMPTY) == 1)
+			empty_count++;
+		else
+		{
+			if (empty_count > 0)
+				res += std::to_string(empty_count);
+			for (int j = 0; j < 14; j++)
+			{
+				if (Squares(i / 8, i % 8, j) == 1)
+					res += PieceStrings[j].at(0);
+			}
+			empty_count = 0;
+		}
+	}
+	return res;
+}
+
 void pos2posNN(Float* posNN, const Position& pos)
 {
 	memset(posNN, 0, 14 * 8 * 8);

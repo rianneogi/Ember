@@ -58,6 +58,13 @@ int Engine::QSearch(int alpha, int beta)
 
 		if (DBSize >= DATABASE_MAX_SIZE)
 		{
+			printf("Conv\n");
+			NetTrain->Conv->Weights->Data.print();
+
+			printf("FC\n");
+			NetTrain->FC1->Weights->Data.print();
+			printf("xxx\n");
+
 			for (uint64_t i = 0; i < BatchSize; i++)
 			{
 				size_t id = rand() % DBSize;
@@ -66,8 +73,28 @@ int Engine::QSearch(int alpha, int beta)
 				OutputEvalTensor(i) = Database[id].eval;
 			}
 			Float error = NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
-			//printf("Error: %f, Avg: %f\n", error, error / BatchSize);
-			//printf("%d\n", stand_pat);
+			printf("Error: %f, Avg: %f\n", error, error / BatchSize);
+			printf("%d\n", stand_pat);
+			if (error > 0.000001)
+			{
+				for (int i = 0; i < BatchSize; i++)
+				{
+					printf("eval: %f %f\n", OutputEvalTensor(i), NetTrain->Output_Eval->Data(i));
+					PositionNN pnn;
+					Position pos;
+					memcpy(pnn.Squares.mData, &InputTensor(i * 14 * 8 * 8), sizeof(Float) * 14 * 8 * 8);
+					pnn.copyToPosition(pos);
+					printf("%s\n", pos.toFEN().c_str());
+					printf("xxx\n");
+				}
+
+				printf("Conv\n");
+				NetTrain->Conv->Weights->Data.print();
+
+				printf("FC\n");
+				NetTrain->FC1->Weights->Data.print();
+				printf("xxx\n");
+			}
 		}
 	}
 #else

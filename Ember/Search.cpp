@@ -144,6 +144,14 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		}
 	}
 
+	PositionNN pnn(CurrentPos);
+	Position pos;
+	pnn.copyToPosition(pos);
+	for (int i = 0; i < 64; i++)
+	{
+		assert(pos.Squares[i] == CurrentPos.Squares[i]);
+	}
+
 #ifdef DO_NULL_MOVE
 	Bitset Pieces = CurrentPos.OccupiedSq ^ CurrentPos.Pieces[COLOR_WHITE][PIECE_PAWN] ^ CurrentPos.Pieces[COLOR_BLACK][PIECE_PAWN];
 	int pieceCount = popcnt(Pieces);

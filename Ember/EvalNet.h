@@ -55,6 +55,9 @@ public:
 
 	Blob* OutputMoveFC;
 	Blob* Output_Move;
+
+	ConvNeuron* Conv;
+	FullyConnectedNeuron* FC1;
 	
 	uint64_t BatchSize;
 

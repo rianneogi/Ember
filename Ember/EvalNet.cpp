@@ -104,12 +104,12 @@ void EvalNet::init_net()
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
 	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
 
-	mBoard->setOptimizer(new AdamOptimizer(1));
+	mBoard->setOptimizer(new AdamOptimizer(0.001));
 
 	//mBoard->addNeuron(new Im2ColNeuron(Input_Pos, ConvKing, 3, 3));
 	Conv = new ConvNeuron(Input_Pos, FCKing, 1);
 	//assert(n1->Weights->Data.mSize == 14);
-	Conv->Weights->Data.setzero();
+	/*Conv->Weights->Data.setzero();
 	Conv->Weights->Data(SQUARE_BLACKBISHOP) = -3;
 	Conv->Weights->Data(SQUARE_BLACKKNIGHT) = -3;
 	Conv->Weights->Data(SQUARE_BLACKPAWN) = -1;
@@ -120,7 +120,7 @@ void EvalNet::init_net()
 	Conv->Weights->Data(SQUARE_WHITEROOK) = 5;
 	Conv->Weights->Data(SQUARE_WHITEQUEEN) = 9;
 	Conv->Weights->Data(SQUARE_WHITEPAWN) = 1;
-	Conv->Biases->Data(0) = 0;
+	Conv->Biases->Data(0) = 0;*/
 	mBoard->addNeuron(Conv);
 	mBoard->addNeuron(new LeakyReLUNeuron(FCKing, ActKing, 1));
 	//mBoard->addNeuron(new FullyConnectedNeuron(ActKing, FullFC1, 1));

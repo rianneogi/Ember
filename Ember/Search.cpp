@@ -276,6 +276,78 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		return 0;
 	}
 
+	if (bestmove.isNullMove() == false)
+	{
+		if (rand() % 20 == 0)
+		{
+			for (int i = 0; i < oldmoves.size(); i++)
+			{
+				if (oldmoves[i] != bestmove)
+				{
+					Data* d = &Database[DBCounter];
+					d->pos.copyFromPosition(CurrentPos);
+					//d->eval = bestscore / 100.0;
+					//if (CurrentPos.Turn == COLOR_BLACK)
+					//	d->eval = -d->eval;
+					d->eval = 0.0;
+					moveToTensorPtr(oldmoves[i], d->move.mData);
+
+					DBCounter++;
+					if (DBCounter == DATABASE_MAX_SIZE)
+					{
+						DBCounter = 0;
+						printf("DB reset\n");
+					}
+
+					if (DBSize < DATABASE_MAX_SIZE)
+					{
+						DBSize++;
+					}
+				}
+			}
+			Data* d = &Database[DBCounter];
+			d->pos.copyFromPosition(CurrentPos);
+			//d->eval = bestscore / 100.0;
+			//if (CurrentPos.Turn == COLOR_BLACK)
+			//	d->eval = -d->eval;
+			d->eval = 1.0;
+			moveToTensorPtr(bestmove, d->move.mData);
+
+			DBCounter++;
+			if (DBCounter == DATABASE_MAX_SIZE)
+			{
+				DBCounter = 0;
+				printf("DB reset\n");
+			}
+
+			if (DBSize < DATABASE_MAX_SIZE)
+			{
+				DBSize++;
+			}
+
+			/*Position p;
+			d->pos.copyToPosition(p);
+			for (int i = 0; i < 64; i++)
+			{
+				assert(CurrentPos.Squares[i] == p.Squares[i]);
+			}*/
+
+			if (DBSize >= DATABASE_MAX_SIZE)
+			{
+				for (uint64_t i = 0; i < BatchSize; i++)
+				{
+					size_t id = rand() % DBSize;
+					//Database[id].pos.Squares.print_raw();
+					memcpy(&PositionTensor(i * POSITION_TENSOR_SIZE), Database[id].pos.Squares.mData, sizeof(Float) * POSITION_TENSOR_SIZE);
+					memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
+					SortTensor(i) = Database[id].eval;
+				}
+				Float error = NetTrain->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
+				printf("Error: %f, Avg: %f\n", error, error / BatchSize);
+			}
+		}
+	}
+
 	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, bestmove); 
 	return bestscore;
 }
@@ -367,11 +439,11 @@ int Engine::Negamax(int depth, int ply)
 		for (uint64_t i = 0; i < BatchSize; i++)
 		{
 			size_t id = rand() % DBSize;
-			memcpy(&InputTensor(i * 14 * 8 * 8), &Database[id].pos.Squares.mData, sizeof(Float) * 14 * 8 * 8);
+			memcpy(&PositionTensor(i * 14 * 8 * 8), &Database[id].pos.Squares.mData, sizeof(Float) * 14 * 8 * 8);
 			memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 			OutputEvalTensor(i) = Database[id].eval;
 		}
-		NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+		NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
 	}
 	return bestscore;
 }

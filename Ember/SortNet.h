@@ -21,5 +21,5 @@ public:
 	Float train(Tensor input, Tensor output);
 };
 
-void moveToTensorPtr(Move m, Float* t);
+void moveToTensorPtr(const Move& m, Float* t);
 

@@ -40,7 +40,7 @@ Float SortNet::train(Tensor input, Tensor output)
 	return error;
 }
 
-void moveToTensorPtr(Move m, Float* t)
+void moveToTensorPtr(const Move& m, Float* t)
 {
 	memset(t, 0, sizeof(Float) * (64 + 64 + 6 + 7 + 7));
 	t[m.getFrom()] = 1;

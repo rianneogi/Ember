@@ -5,10 +5,13 @@ const int CONST_INF = 10000;
 
 const int BATCH_SIZE = 144;
 
+const size_t POSITION_TENSOR_SIZE = 8 * 8 * 14;
+const size_t MOVE_TENSOR_SIZE = 64 + 64 + 6 + 7 + 7;
+
 Engine::Engine()
-	: BatchSize(BATCH_SIZE), InputTensor(make_shape(BATCH_SIZE, 8, 8, 14)),
+	: BatchSize(BATCH_SIZE), PositionTensor(make_shape(BATCH_SIZE, 8, 8, 14)),
 	OutputMoveTensor(make_shape(BATCH_SIZE, 2, 64)), OutputEvalTensor(make_shape(BATCH_SIZE, 1)),
-	MoveTensor(make_shape(BATCH_SIZE, 64 + 64 + 6 + 7 + 7)), SortTensor(make_shape(BATCH_SIZE, 1))
+	MoveTensor(make_shape(BATCH_SIZE, MOVE_TENSOR_SIZE)), SortTensor(make_shape(BATCH_SIZE, 1))
 {
 	Database = new Data[DATABASE_MAX_SIZE];
 	DBCounter = 0;
@@ -126,13 +129,13 @@ void Engine::learn_eval(uint64_t num_games)
 						{
 							//size_t id = rand() % DBSize;
 							size_t id = batch*BatchSize + i;
-							memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
+							memcpy(&PositionTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
 							//memcpy(&OutputTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
 							OutputEvalTensor(i) = Database[id].eval / 100.0;
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+							error += NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
 							//printf("Error: %f\n", error);
 						}
 					}
@@ -241,13 +244,13 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 						{
 							//size_t id = rand() % DBSize;
 							size_t id = batch*BatchSize + i;
-							memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
+							memcpy(&PositionTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
 							//memcpy(&OutputTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
 							OutputEvalTensor(i) = Database[id].eval / 100.0;
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+							error += NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
 							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 						}
 					}
@@ -414,14 +417,14 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				for (uint64_t i = 0; i < BatchSize; i++)
 				{
 					size_t id = batch*BatchSize + i;
-					memcpy(&InputTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
+					memcpy(&PositionTensor(i * 8 * 8 * 14), Database[id].pos.Squares.mData, sizeof(Float) * 8 * 8 * 14);
 					//memcpy(&OutputMoveTensor(i * 2 * 64), Database[id].move.mData, sizeof(Float) * 2 * 64);
 
 					OutputEvalTensor(i) = Database[id].eval;
 				}
 				for (int run = 0; run < num_runs; run++)
 				{
-					error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+					error += NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
 					//updateVariables_TD(batch*BatchSize, BatchSize);
 				}
 			}
@@ -500,7 +503,7 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 
 				uint64_t id = games_filled*play_count + k;
 
-				pos2posNN(&InputTensor(id * 8 * 8 * 14), CurrentPos);
+				pos2posNN(&PositionTensor(id * 8 * 8 * 14), CurrentPos);
 
 				if (CurrentPos.Turn == COLOR_BLACK)
 					search.eval = -search.eval;
@@ -550,7 +553,7 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 					error = 0;
 					for (int run = 0; run < num_runs; run++)
 					{
-						error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+						error += NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
 						//updateVariables_TD(batch*BatchSize, BatchSize);
 					}
 				}

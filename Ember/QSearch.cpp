@@ -35,48 +35,48 @@ int Engine::QSearch(int alpha, int beta)
 #ifdef TRAINING_BUILD
 	stand_pat = LeafEval_MatOnly();
 
-	if (rand() % 20 == 0)
-	{
-		Data* d = &Database[DBCounter];
-		d->pos.copyFromPosition(CurrentPos);
-		d->eval = stand_pat / 100.0;
-		if (CurrentPos.Turn == COLOR_BLACK)
-			d->eval = -d->eval;
-		//moveToTensor(m, &d->move);
+	//if (rand() % 20 == 0)
+	//{
+	//	Data* d = &Database[DBCounter];
+	//	d->pos.copyFromPosition(CurrentPos);
+	//	d->eval = stand_pat / 100.0;
+	//	if (CurrentPos.Turn == COLOR_BLACK)
+	//		d->eval = -d->eval;
+	//	//moveToTensor(m, &d->move);
 
-		Position p;
-		d->pos.copyToPosition(p);
-		for (int i = 0; i < 64; i++)
-		{
-			assert(CurrentPos.Squares[i] == p.Squares[i]);
-		}
+	//	Position p;
+	//	d->pos.copyToPosition(p);
+	//	for (int i = 0; i < 64; i++)
+	//	{
+	//		assert(CurrentPos.Squares[i] == p.Squares[i]);
+	//	}
 
-		DBCounter++;
-		if (DBCounter == DATABASE_MAX_SIZE)
-		{
-			DBCounter = 0;
-			printf("DB reset\n");
-		}
+	//	DBCounter++;
+	//	if (DBCounter == DATABASE_MAX_SIZE)
+	//	{
+	//		DBCounter = 0;
+	//		printf("DB reset\n");
+	//	}
 
-		if (DBSize < DATABASE_MAX_SIZE)
-		{
-			DBSize++;
-		}
+	//	if (DBSize < DATABASE_MAX_SIZE)
+	//	{
+	//		DBSize++;
+	//	}
 
-		if (DBSize >= DATABASE_MAX_SIZE)
-		{
-			for (uint64_t i = 0; i < BatchSize; i++)
-			{
-				size_t id = rand() % DBSize;
-				//Database[id].pos.Squares.print_raw();
-				memcpy(&InputTensor(i * 14 * 8 * 8), Database[id].pos.Squares.mData, sizeof(Float) * 14 * 8 * 8);
-				//memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
-				OutputEvalTensor(i) = Database[id].eval;
-			}
-			Float error = NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
-			printf("Error: %f, Avg: %f\n", error, error / BatchSize);
-		}
-	}
+	//	if (DBSize >= DATABASE_MAX_SIZE)
+	//	{
+	//		for (uint64_t i = 0; i < BatchSize; i++)
+	//		{
+	//			size_t id = rand() % DBSize;
+	//			//Database[id].pos.Squares.print_raw();
+	//			memcpy(&InputTensor(i * 14 * 8 * 8), Database[id].pos.Squares.mData, sizeof(Float) * 14 * 8 * 8);
+	//			//memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
+	//			OutputEvalTensor(i) = Database[id].eval;
+	//		}
+	//		Float error = NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+	//		printf("Error: %f, Avg: %f\n", error, error / BatchSize);
+	//	}
+	//}
 #else
 	stand_pat = LeafEval();
 #endif

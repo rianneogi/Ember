@@ -10,12 +10,15 @@ extern jmp_buf JumpEnv;
 extern const int CONST_INF; 
 extern const int DATABASE_MAX_SIZE;
 
+extern const size_t POSITION_TENSOR_SIZE;
+extern const size_t MOVE_TENSOR_SIZE;
+
 enum TimeMode { MODE_DEFAULT, MODE_MOVETIME, MODE_INF, MODE_DEPTH };
 
 struct Data
 {
 public:
-	Data() : move(make_shape(20, 2, 64)) {}
+	Data() : move(make_shape(MOVE_TENSOR_SIZE)) {}
 	~Data() { move.freemem(); }
 
 	PositionNN pos;
@@ -48,7 +51,7 @@ public:
 	SortNet* NetSort;
 
 	PositionNN PosNN;
-	Tensor InputTensor;
+	Tensor PositionTensor;
 	Tensor OutputMoveTensor;
 	Tensor OutputEvalTensor;
 	uint64_t BatchSize;

@@ -18,9 +18,11 @@ public:
 
 	PGNData();
 	PGNData(std::string file);
+	PGNData(std::string file, size_t num_games);
 	~PGNData();
 
 	void loadFromFile(std::string file);
+	void loadFromFile(std::string file, size_t num_games); //loads 'num_games' games from the file
 	void printData();
 };
 

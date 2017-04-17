@@ -10,9 +10,6 @@ extern jmp_buf JumpEnv;
 extern const int CONST_INF; 
 extern const int DATABASE_MAX_SIZE;
 
-extern const size_t POSITION_TENSOR_SIZE;
-extern const size_t MOVE_TENSOR_SIZE;
-
 enum TimeMode { MODE_DEFAULT, MODE_MOVETIME, MODE_INF, MODE_DEPTH };
 
 struct Data

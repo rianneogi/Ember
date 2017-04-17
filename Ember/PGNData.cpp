@@ -9,31 +9,36 @@ PGNData::PGNData(std::string file)
 	loadFromFile(file);
 }
 
+PGNData::PGNData(std::string file, size_t num_games)
+{
+	loadFromFile(file, num_games);
+}
+
 PGNData::~PGNData()
 {
 }
 
 void PGNData::loadFromFile(std::string file)
 {
+	loadFromFile(file, 0);
+}
+
+void PGNData::loadFromFile(std::string file, size_t num_games)
+{
 	using std::cout;
 	using std::endl;
 
-	//int fenformat = 0;
 	std::fstream f(file, std::ios::in);
 	if (!f.is_open())
 	{
 		cout << "ERROR: cant open file: " << file << endl;
 	}
 	std::string s;
-	//double error = 0;
 	enum { SEARCH, PARSE, SQUARE, CURLY };
 	int phase = SEARCH;
 	std::string movestr = "";
-	//double Res = 0;
 	int gameno = 1;
-	//int poscount = 0;
 
-	//std::vector<Move> movelist;
 	Position pos;
 	pos.setStartPos();
 
@@ -101,45 +106,18 @@ void PGNData::loadFromFile(std::string file)
 
 					if (change == 1)
 					{
-						//pos.setStartPos();
-						//for (int i = 0; i < movelist.size(); i++)
-						//{
-						//	if (!pos.tryMove(movelist.at(i)))
-						//	{
-						//		cout << "ILLEGAL MOVE " << movelist.at(i).toString() << " " << i << endl;
-						//	}
-						//	currentGame.Moves.push_back(movelist[i]);
-						//	//cout << "parsing move " << movelist.at(i).toString() << endl;
-						//	//int score = e.QuiescenceSearch(CONST_NEGINF, CONST_INF);
-						//	//if (score > 20000)
-						//	//{
-						//	//	e.pos.display(0);
-						//	//	cout << endl;
-						//	//}
-						//	//if (e.pos.turn == COLOR_BLACK)
-						//	//	score = -score;
-						//	//double err = Res - (1 / (1 + pow(10, (-K*score) / 400)));
-						//	//err *= err;
-						//	////cout << score << " " << err << endl;
-						//	//assert(err >= 0 && err <= 1);
-						//	//error += err;
-						//	//poscount++;
-						//}
 						Games.push_back(currentGame);
-						//printf("%s ", currentGame.Moves[0].toString());
-						//printf("%s ", Games[Games.size()-1].Moves[0].toString());
+						if (Games.size() >= num_games && num_games != 0)
+							return;
+
 						currentGame = PGNGame();
 
 						pos.setStartPos();
-						//movelist.clear();
 						gameno++;
-						//cout << "gameno: " << gameno << endl;
 					}
-					//cout << movestr << endl;
 					movestr = "";
 					continue;
 				}
-
 
 				std::string move = convertMoveNotation(movestr, pos);
 				if (move == "error")
@@ -168,11 +146,8 @@ void PGNData::loadFromFile(std::string file)
 					{
 						pos.makeMove(theMove);
 						currentGame.Moves.push_back(theMove);
-						//movelist.push_back(theMove);
-						//cout << "added move " << movestr << endl;
 					}
 				}
-				//cout << movestr << endl;
 				movestr = "";
 			}
 		}
@@ -204,7 +179,6 @@ void PGNData::printData()
 		for (int j = 0; j < Games[i].Moves.size(); j++)
 		{
 			printf("%s ", Games[i].Moves[j].toString().c_str());
-			//printf("%d ", Games[i].Result);
 		}
 		printf("\n");
 	}

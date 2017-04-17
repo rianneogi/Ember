@@ -1,6 +1,6 @@
 #include "Engine.h"
 
-const int DATABASE_MAX_SIZE = 14400;
+const int DATABASE_MAX_SIZE = 6400;
 const int CONST_INF = 10000;
 
 const int BATCH_SIZE = 144;
@@ -579,7 +579,7 @@ void Engine::learn_eval_pgn(const PGNData& pgn, double time_limit)
 
 	for (size_t i = 0; i < pgn.Games.size(); i++)
 	{
-		printf("\n-----GAME %d-----\n", i + 1);
+		printf("\nGame: %d, Time: %f\n", i + 1, time_limit - timer.ElapsedSeconds());
 		CurrentPos.setStartPos();
 
 		for (size_t j = 0; j < pgn.Games[i].Moves.size(); j++)

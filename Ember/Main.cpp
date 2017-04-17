@@ -20,11 +20,11 @@ int main()
 	//e.load_nets(path_weights);
 	//_set_error_mode(_OUT_TO_MSGBOX);
 	printf("Loading pgn\n");
-	PGNData pgn(path_pgn);
+	PGNData pgn(path_pgn, 2000);
 	
 	printf("Starting training\n");
 
-	e.learn_eval_pgn(pgn, 60*60);
+	e.learn_eval_pgn(pgn, 2*60);
 	
 	printf("Saving weights\n");
 	e.NetTrain->save(path_weights);

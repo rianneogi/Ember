@@ -18,6 +18,9 @@
 #include <Optimizers\StandardOptimizer.h>
 #include <Optimizers\AdamOptimizer.h>
 
+extern const size_t POSITION_TENSOR_SIZE;
+extern const size_t MOVE_TENSOR_SIZE;
+
 class EvalNet
 {
 public:
@@ -44,6 +47,9 @@ public:
 	Blob* ConvKnight;
 	Blob* FCKnight;
 	Blob* ActKnight;
+
+	Blob* MoveFC;
+	Blob* MoveFCAct;
 
 	Blob* ConvAct;
 

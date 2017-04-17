@@ -24,10 +24,10 @@ int main()
 	
 	printf("Starting training\n");
 
-	e.learn_eval_pgn(pgn, 60);
+	e.learn_eval_pgn(pgn, 60*60);
 	
 	printf("Saving weights\n");
-	//e.NetTrain->save(path_weights);
+	e.NetTrain->save(path_weights);
 	printf("Done\n");
 
 	e.NetPlay->mBoard->copy_variables(e.NetTrain->mBoard);

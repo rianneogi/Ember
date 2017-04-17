@@ -1,6 +1,6 @@
 #include "Engine.h"
 
-const int DATABASE_MAX_SIZE = 6400;
+const int DATABASE_MAX_SIZE = 14400;
 const int CONST_INF = 10000;
 
 const int BATCH_SIZE = 144;
@@ -42,6 +42,9 @@ Engine::Engine()
 	SortNetCount = 0;
 	BetaCutoffCount = 0;
 	BetaCutoffValue = 0;
+
+	CumulativeSum = 0;
+	CumulativeCount = 0;
 }
 
 Engine::~Engine()
@@ -599,7 +602,7 @@ void Engine::learn_eval_pgn(const PGNData& pgn, double time_limit)
 			}
 			assert(m.isNullMove() == false);
 			CurrentPos.makeMove(m);*/
-			printf("  ---Move %d---\n", j+1);
+			//printf("  ---Move %d---\n", j+1);
 			//Play game
 			SearchResult search = go(MODE_DEPTH, 4, 1000, 0, 0, false);
 
@@ -632,4 +635,6 @@ void Engine::learn_eval_pgn(const PGNData& pgn, double time_limit)
 			//}
 		}
 	}
+
+	printf("\nALL GAMES FINISHED\n");
 }

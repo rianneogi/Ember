@@ -144,13 +144,13 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		}
 	}
 
-	PositionNN pnn(CurrentPos);
+	/*PositionNN pnn(CurrentPos);
 	Position pos;
 	pnn.copyToPosition(pos);
 	for (int i = 0; i < 64; i++)
 	{
 		assert(pos.Squares[i] == CurrentPos.Squares[i]);
-	}
+	}*/
 
 #ifdef DO_NULL_MOVE
 	Bitset Pieces = CurrentPos.OccupiedSq ^ CurrentPos.Pieces[COLOR_WHITE][PIECE_PAWN] ^ CurrentPos.Pieces[COLOR_BLACK][PIECE_PAWN];
@@ -278,7 +278,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 
 	if (bestmove.isNullMove() == false)
 	{
-		if (rand() % 20 == 0)
+		if (rand() % 512 == 0)
 		{
 			for (int i = 0; i < oldmoves.size(); i++)
 			{
@@ -343,7 +343,10 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 					SortTensor(i) = Database[id].eval;
 				}
 				Float error = NetTrain->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
-				printf("Error: %f, Avg: %f\n", error, error / BatchSize);
+				CumulativeSum += error;
+				CumulativeCount++;
+				if(CumulativeCount%16==0)
+					printf("Error: %f, Avg: %f, Cumulative Avg: %f\n", error, error / BatchSize, CumulativeSum/CumulativeCount);
 			}
 		}
 	}

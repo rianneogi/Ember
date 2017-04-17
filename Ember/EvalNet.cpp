@@ -56,7 +56,7 @@ void EvalNet::init_net()
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
 	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
 
-	mBoard->setOptimizer(new AdamOptimizer(0.001));
+	mBoard->setOptimizer(new AdamOptimizer(0.0001));
 
 	mBoard->addNeuron(new KingNeuron(Input_Pos, ConvKing, 3, 3, OOB));
 	mBoard->addNeuron(new ConvNeuron(ConvKing, FCKing, 1));

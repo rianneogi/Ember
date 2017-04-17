@@ -69,6 +69,9 @@ public:
 	uint64_t BetaCutoffCount;
 	uint64_t BetaCutoffValue;
 
+	size_t CumulativeCount;
+	Float CumulativeSum;
+
 	Engine();
 	~Engine();
 

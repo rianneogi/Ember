@@ -42,10 +42,10 @@ Float SortNet::train(Tensor input, Tensor output)
 
 void moveToTensorPtr(const Move& m, Float* t)
 {
-	memset(t, 0, sizeof(Float) * (64 + 64 + 6 + 7 + 7));
+	memset(t, 0, sizeof(Float) * MOVE_TENSOR_SIZE);
 	t[m.getFrom()] = 1;
 	t[64 + m.getTo()] = 1;
 	t[128 + m.getMovingPiece()] = 1;
 	t[128 + 6 + getSquare2Piece(m.getCapturedPiece())] = 1;
-	t[128 + 12 + m.getSpecial()] = 1;
+	t[128 + 13 + m.getSpecial()] = 1;
 }

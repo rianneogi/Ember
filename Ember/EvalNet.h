@@ -51,6 +51,7 @@ public:
 	Blob* MoveFC;
 	Blob* MoveFCAct;
 
+	Blob* ConvFull;
 	Blob* ConvAct;
 
 	Blob* FullFC;

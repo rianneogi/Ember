@@ -190,13 +190,32 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 {
 	for (int i = 0; i < moves.size(); i++)
 	{
-		moveToTensorPtr(moves[i], &MoveTensor(i,0));
+		pos2posNN(&PositionTensor(i*POSITION_TENSOR_SIZE), CurrentPos);
+		moveToTensorPtr(moves[i], &MoveTensor(i, 0));
 	}
-	NetSort->mBoard->forward(MoveTensor);
+
+	std::vector<Tensor*> v;
+	v.push_back(&PositionTensor);
+	v.push_back(&MoveTensor);
+	v.push_back(nullptr);
+	printf("BEFORE\n");
+	for (int i = 0; i < moves.size(); i++)
+	{
+		printf("%s %f ", moves[i].toString().c_str(), NetTrain->Output_Move->Data(i));
+	}
+	printf("\n");
+	NetTrain->mBoard->forward(v);
+	printf("AFTER\n");
+	for (int i = 0; i < moves.size(); i++)
+	{
+		printf("%s %f ", moves[i].toString().c_str(), NetTrain->Output_Move->Data(i));
+	}
+	printf("\n");
 
 	int bigmoveid = current_move;
 	Move bigmove = moves.at(current_move);
-	Float bigscore = NetSort->Output->Data(current_move);
+	
+	Float bigscore = NetTrain->Output_Move->Data(current_move);
 	Float x;
 	
 	for (int i = current_move+1; i < moves.size(); i++)
@@ -208,17 +227,20 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 			bigmove = moves.at(i);
 			break;
 		}
-		x = NetSort->Output->Data(i);
-		if (x>bigscore)
+		x = NetTrain->Output_Move->Data(i);
+		if (x > bigscore)
 		{
+			//printf("%f bigger than %f, %d\n", x, bigscore, i);
 			bigscore = x;
 			bigmoveid = i;
 			bigmove = moves.at(i);
 		}
 	}
+	if (bigmoveid != current_move)
+		printf("SWAPPED %d %d\n", bigmoveid, current_move);
 	Move m = bigmove; //swap move
 	moves.at(bigmoveid) = moves.at(current_move);
 	moves.at(current_move) = m;
-	//printf("%f\n", bigscore);
+	printf("%f\n", bigscore);
 	return m;
 }

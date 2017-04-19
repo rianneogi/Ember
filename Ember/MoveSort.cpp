@@ -198,19 +198,19 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 	v.push_back(&PositionTensor);
 	v.push_back(&MoveTensor);
 	v.push_back(nullptr);
-	printf("BEFORE\n");
+	/*printf("BEFORE\n");
 	for (int i = 0; i < moves.size(); i++)
 	{
 		printf("%s %f ", moves[i].toString().c_str(), NetTrain->Output_Move->Data(i));
 	}
-	printf("\n");
+	printf("\n");*/
 	NetTrain->mBoard->forward(v);
-	printf("AFTER\n");
+	/*printf("AFTER\n");
 	for (int i = 0; i < moves.size(); i++)
 	{
 		printf("%s %f ", moves[i].toString().c_str(), NetTrain->Output_Move->Data(i));
 	}
-	printf("\n");
+	printf("\n");*/
 
 	int bigmoveid = current_move;
 	Move bigmove = moves.at(current_move);
@@ -236,11 +236,11 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 			bigmove = moves.at(i);
 		}
 	}
-	if (bigmoveid != current_move)
-		printf("SWAPPED %d %d\n", bigmoveid, current_move);
+	//if (bigmoveid != current_move)
+	//	printf("SWAPPED %d %d\n", bigmoveid, current_move);
 	Move m = bigmove; //swap move
 	moves.at(bigmoveid) = moves.at(current_move);
 	moves.at(current_move) = m;
-	printf("%f\n", bigscore);
+	//printf("%f\n", bigscore);
 	return m;
 }

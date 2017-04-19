@@ -59,7 +59,7 @@ void EvalNet::init_net()
 	//OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 1));
 	//Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
 
-	//mBoard->setOptimizer(new AdamOptimizer(0.001));
+	//mBoard->setOptimizer(new AdamOptimizer(0.01));
 
 	//mBoard->addNeuron(new KingNeuron(Input_Pos, ConvKing, 3, 3, OOB));
 	//mBoard->addNeuron(new ConvNeuron(ConvKing, FCKing, 1));
@@ -113,7 +113,7 @@ void EvalNet::init_net()
 
 	MoveFC = mBoard->newBlob(make_shape(BatchSize, 12));
 	MoveFCAct = ConvAct->cut2(8 * 8, 12);
-	printf("initd %d %d\n", ActKing->Data.mLD,ConvAct->Data.mLD);
+	
 	Output_Move = mBoard->newBlob(make_shape(BatchSize, 1));
 
 	mBoard->setOptimizer(new AdamOptimizer(0.001));

@@ -62,8 +62,8 @@ void EvalNet::init_net()
 	MoveFCAct = ConvAct->cut2(king_output_size * 8 * 8 + 30 * diag_output_size + 
 		8 * file_output_size + 8 * rank_output_size, move_output_size);
 
-	FullFC = mBoard->newBlob(make_shape(BatchSize, 32));
-	FullFCAct = mBoard->newBlob(make_shape(BatchSize, 32));
+	FullFC = mBoard->newBlob(make_shape(BatchSize, fc_size));
+	FullFCAct = mBoard->newBlob(make_shape(BatchSize, fc_size));
 
 	OutputMoveFC = mBoard->newBlob(make_shape(BatchSize, 1));
 	Output_Move = mBoard->newBlob(make_shape(BatchSize, 1));
@@ -104,8 +104,8 @@ void EvalNet::init_net()
 	mBoard->addNeuron(new FullyConnectedNeuron(FullFCAct, OutputMoveFC, 1));
 	mBoard->addNeuron(new LeakyReLUNeuron(OutputMoveFC, Output_Move, 1));
 
-	mBoard->addErrorFunction(new L1Error(Input_Pos, Output_Move));
-	//mBoard->addErrorFunction(new MeanSquaredError(Input_Move, Output_Move));
+	mBoard->addErrorFunction(new L1Error(Output_Move));
+	//mBoard->addErrorFunction(new MeanSquaredError(Output_Move));
 
 	mBoard->addPlaceholder(mBoard->mErrorFuncs[0]->mTarget);
 	//mBoard->addPlaceholder(mBoard->mErrorFuncs[1]->mTarget);
@@ -146,8 +146,8 @@ void EvalNet::init_net()
 
 	//mBoard->addNeuron(new FullyConnectedNeuron(ConvAct, Output_Move, 1));
 
-	////mBoard->addErrorFunction(new MeanSquaredError(Input_Pos, Output_Move));
-	//mBoard->addErrorFunction(new L1Error(Input_Pos, Output_Move));
+	////mBoard->addErrorFunction(new MeanSquaredError(Output_Move));
+	//mBoard->addErrorFunction(new L1Error(Output_Move));
 
 	//mBoard->addPlaceholder(mBoard->mErrorFuncs[0]->mTarget);
 }

@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+int TRAIN_EPOCH_COUNT = 1;
+
 jmp_buf JumpEnv;
 
 int getNPS(int nodes, int milliseconds)
@@ -280,7 +282,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 
 				if (DBSize >= DATABASE_MAX_SIZE)
 				{
-					for (int epoch = 0; epoch < 10; epoch++)
+					for (int epoch = 0; epoch < TRAIN_EPOCH_COUNT; epoch++)
 					{
 						for (uint64_t i = 0; i < BatchSize; i++)
 						{
@@ -290,7 +292,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 							memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
 							SortTensor(i) = Database[id].eval;
 						}
-						Float error = NetTrain->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
+						Float error = NetSort->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
 						CumulativeSum += error;
 						CumulativeCount++;
 						if (CumulativeCount % 16 == 0)
@@ -407,7 +409,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 
 			if (DBSize >= DATABASE_MAX_SIZE)
 			{
-				for (int epoch = 0; epoch < 10; epoch++)
+				for (int epoch = 0; epoch < TRAIN_EPOCH_COUNT; epoch++)
 				{
 					for (uint64_t i = 0; i < BatchSize; i++)
 					{
@@ -417,7 +419,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 						memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
 						SortTensor(i) = Database[id].eval;
 					}
-					Float error = NetTrain->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
+					Float error = NetSort->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
 					CumulativeSum += error;
 					CumulativeCount++;
 					if (CumulativeCount % 16 == 0)

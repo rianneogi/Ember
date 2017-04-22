@@ -204,7 +204,7 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 		printf("%s %f ", moves[i].toString().c_str(), NetTrain->Output_Move->Data(i));
 	}
 	printf("\n");*/
-	NetTrain->mBoard->forward(v);
+	NetSort->mBoard->forward(v);
 	/*printf("AFTER\n");
 	for (int i = 0; i < moves.size(); i++)
 	{
@@ -215,7 +215,7 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 	int bigmoveid = current_move;
 	Move bigmove = moves.at(current_move);
 	
-	Float bigscore = NetTrain->Output_Move->Data(current_move);
+	Float bigscore = NetSort->Output_Move->Data(current_move);
 	Float x;
 	
 	for (int i = current_move+1; i < moves.size(); i++)

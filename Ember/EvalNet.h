@@ -12,9 +12,11 @@
 #include <Neurons\SigmoidNeuron.h>
 #include <Neurons\LeakyReLUNeuron.h>
 #include <Neurons\ReshapeNeuron.h>
+#include <Neurons\StepNeuron.h>
 #include <ErrorFunctions\MeanSquaredError.h>
 #include <ErrorFunctions\L1Error.h>
 #include <ErrorFunctions\UnitError.h>
+#include <ErrorFunctions\CrossEntropyError.h>
 #include <Optimizers\StandardOptimizer.h>
 #include <Optimizers\AdamOptimizer.h>
 

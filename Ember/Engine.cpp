@@ -1,6 +1,6 @@
 #include "Engine.h"
 
-const int DATABASE_MAX_SIZE = 6400;
+const int DATABASE_MAX_SIZE = 14400;
 const int CONST_INF = 10000;
 
 const int BATCH_SIZE = 144;
@@ -138,7 +138,7 @@ void Engine::learn_eval(uint64_t num_games)
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
+							error += NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 							//printf("Error: %f\n", error);
 						}
 					}
@@ -253,7 +253,7 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
+							error += NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 						}
 					}
@@ -427,7 +427,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				}
 				for (int run = 0; run < num_runs; run++)
 				{
-					error += NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
+					error += NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 					//updateVariables_TD(batch*BatchSize, BatchSize);
 				}
 			}
@@ -556,7 +556,7 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 					error = 0;
 					for (int run = 0; run < num_runs; run++)
 					{
-						error += NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
+						error += NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 						//updateVariables_TD(batch*BatchSize, BatchSize);
 					}
 				}
@@ -604,7 +604,7 @@ void Engine::learn_eval_pgn(const PGNData& pgn, double time_limit)
 			CurrentPos.makeMove(m);*/
 			//printf("  ---Move %d---\n", j+1);
 			//Play game
-			SearchResult search = go(MODE_DEPTH, 4, 1000, 0, 0, false);
+			SearchResult search = go(MODE_DEPTH, 5, 1000, 0, 0, false);
 
 			
 			//games_filled++;

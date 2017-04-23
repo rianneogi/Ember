@@ -76,7 +76,7 @@ public:
 
 	void init_net();
 
-	Float train(Tensor* input_pos, Tensor* input_move, Tensor* output_eval, Tensor* output_move);
+	Float train(Tensor input_pos, Tensor input_move, Tensor output_eval, Tensor output_move);
 
 	Float get_eval(Tensor input);
 

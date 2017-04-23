@@ -26,7 +26,7 @@ void EvalNet::init_net()
 
 	Input_Pos = mBoard->newBlob(make_shape(BatchSize, POSITION_TENSOR_SIZE));
 
-	mBoard->addPlaceholder(&Input_Pos->Data);
+	mBoard->addPlaceholder(Input_Pos->Data);
 
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 128));
 	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
@@ -40,9 +40,9 @@ void EvalNet::init_net()
 	mBoard->addPlaceholder(mBoard->mErrorFuncs[0]->mTarget);
 }
 
-Float EvalNet::train(Tensor* input_pos, Tensor* input_move, Tensor* output_eval, Tensor* output_move)
+Float EvalNet::train(Tensor input_pos, Tensor input_move, Tensor output_eval, Tensor output_move)
 {
-	std::vector<Tensor*> v;
+	std::vector<Tensor> v;
 	v.push_back(input_pos);
 	//v.push_back(input_move);
 	v.push_back(output_eval);

@@ -27,15 +27,21 @@ void SortNet::init_net()
 	Input_Pos = mBoard->newBlob(make_shape(BatchSize, 8, 8, 14));
 	Input_Move = mBoard->newBlob(make_shape(BatchSize, MOVE_TENSOR_SIZE));
 
-	mBoard->addPlaceholder(&Input_Pos->Data);
-	mBoard->addPlaceholder(&Input_Move->Data);
+	mBoard->addPlaceholder(Input_Pos->Data);
+	mBoard->addPlaceholder(Input_Move->Data);
 
-	int king_output_size = 8;
-	int diag_output_size = 8;
-	int file_output_size = 8;
-	int rank_output_size = 8;
-	int move_output_size = 8;
+	int king_output_size = 1;
+	int diag_output_size = 1;
+	int file_output_size = 1;
+	int rank_output_size = 1;
+	int move_output_size = 1;
 	int fc_size = 32;
+
+	//parameter count: (14*9+1)*king_output_size + (8*14+1) * diag_output_size + (8*14+1) * file_output_size 
+	//                 + (8*14+1) * rank_output_size  + (MOVE_TENSOR_SIZE+1)*move_output_size 
+	//                 + fc_size+1
+	//                 + (8*8*king_output_size + 30*diag_output_size + 8*(file_output_size + rank_output_size) 
+	//                           + move_output_size + 1)*fc_size
 
 	ConvAct = mBoard->newBlob(make_shape(BatchSize, king_output_size * 8 * 8
 		+ 30 * diag_output_size + 8 * file_output_size + 8 * rank_output_size
@@ -111,32 +117,27 @@ void SortNet::init_net()
 
 
 
-	//mBoard = new Board();
 	//Input_Pos = mBoard->newBlob(make_shape(BatchSize, 8, 8, 14));
 	//Input_Move = mBoard->newBlob(make_shape(BatchSize, MOVE_TENSOR_SIZE));
 
 	////ConvFull = mBoard->newBlob(make_shape(BatchSize, 12 + 8 * 8));
-	//ConvAct = mBoard->newBlob(make_shape(BatchSize, 8 * 8*3 + 24));
+	//ConvAct = mBoard->newBlob(make_shape(BatchSize, 6 * 6*1 + 24));
 
-	//ConvKing = mBoard->newBlob(make_shape(BatchSize * 8 * 8, 14 * 9));
-	//FCKing = mBoard->newBlob(make_shape(BatchSize*8*8, 3));
-	//ActKing = ConvAct->cut2(0, 8*8*3); //resize in activation neuron
+	//ConvKing = mBoard->newBlob(make_shape(BatchSize * 6 * 6, 14 * 9));
+	//FCKing = mBoard->newBlob(make_shape(BatchSize*6*6, 1));
+	//ActKing = ConvAct->cut2(0, 6*6*1); //resize in activation neuron
 
 	//MoveFC = mBoard->newBlob(make_shape(BatchSize, 24));
-	//MoveFCAct = ConvAct->cut2(8 * 8 * 3, 24);
+	//MoveFCAct = ConvAct->cut2(6 * 6 * 1, 24);
 	//
 	//Output_Move = mBoard->newBlob(make_shape(BatchSize, 1));
 
-	//mBoard->setOptimizer(new AdamOptimizer(0.001));
+	//mBoard->setOptimizer(new AdamOptimizer(0.01));
 
 	//mBoard->addPlaceholder(&Input_Pos->Data);
 	//mBoard->addPlaceholder(&Input_Move->Data);
 
-	//Tensor OOB(make_shape(14));
-	//OOB.setzero();
-	//OOB(SQUARE_INVALID) = 1;
-
-	//mBoard->addNeuron(new KingNeuron(Input_Pos, ConvKing, 3, 3, OOB));
+	//mBoard->addNeuron(new Im2ColNeuron(Input_Pos, ConvKing, 3, 3));
 	//mBoard->addNeuron(new ConvNeuron(ConvKing, FCKing, 1));
 	//mBoard->addNeuron(new LeakyReLUNeuron(FCKing, ActKing, 0.05));
 
@@ -151,9 +152,9 @@ void SortNet::init_net()
 	//mBoard->addPlaceholder(mBoard->mErrorFuncs[0]->mTarget);
 }
 
-Float SortNet::train(Tensor* input_pos, Tensor* input_move, Tensor* output_eval, Tensor* output_move)
+Float SortNet::train(Tensor input_pos, Tensor input_move, Tensor output_eval, Tensor output_move)
 {
-	std::vector<Tensor*> v;
+	std::vector<Tensor> v;
 	v.push_back(input_pos);
 	v.push_back(input_move);
 	//v.push_back(output_eval);

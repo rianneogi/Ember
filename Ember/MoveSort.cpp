@@ -194,10 +194,10 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 		moveToTensorPtr(moves[i], &MoveTensor(i, 0));
 	}
 
-	std::vector<Tensor*> v;
-	v.push_back(&PositionTensor);
-	v.push_back(&MoveTensor);
-	v.push_back(nullptr);
+	std::vector<Tensor> v;
+	v.push_back(PositionTensor);
+	v.push_back(MoveTensor);
+	v.push_back(Tensor());
 	/*printf("BEFORE\n");
 	for (int i = 0; i < moves.size(); i++)
 	{
@@ -227,7 +227,7 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 			bigmove = moves.at(i);
 			break;
 		}
-		x = NetTrain->Output_Move->Data(i);
+		x = NetSort->Output_Move->Data(i);
 		if (x > bigscore)
 		{
 			//printf("%f bigger than %f, %d\n", x, bigscore, i);

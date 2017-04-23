@@ -69,12 +69,14 @@ SearchResult Engine::go(int mode, int wtime, int btime, int winc, int binc, bool
 	{
 		best = go_alphabeta(depth);
 
-		if(print)
+		if (print)
+		{
 			std::cout << "info score cp " << best.eval << " depth " << depth << " nodes " << NodeCount <<
 				" nps " << getNPS(NodeCount, Timer.ElapsedMilliseconds()) <<
 				" pv " << best.m.toString() << std::endl;
-		//std::cout << "info string Betacuff ratio: " << ((BetaCutoffCount*1.0) / NodeCount) << std::endl;
-		//std::cout << "info string Betacuff movecount: " << ((BetaCutoffValue*1.0) / BetaCutoffCount) << std::endl;
+			std::cout << "info string Betacuff ratio: " << ((BetaCutoffCount*1.0) / NodeCount) << std::endl;
+			std::cout << "info string Betacuff movecount: " << ((BetaCutoffValue*1.0) / BetaCutoffCount) << std::endl;
+		}	
 
 		assert(best.eval >= -CONST_INF && best.eval <= CONST_INF);
 		assert(best.m.isNullMove() == false);
@@ -233,7 +235,8 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m);
 			bestmove = m;
 
-			if (rand() % 512 == 0)
+#ifdef TRAINING_BUILD
+			if (rand() % 512 == 0 && depth >= 0)
 			{
 				for (int i = 0; i < oldmoves.size(); i++)
 				{
@@ -292,7 +295,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 							memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
 							SortTensor(i) = Database[id].eval;
 						}
-						Float error = NetSort->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
+						Float error = NetSort->train(PositionTensor, MoveTensor, Tensor(), SortTensor);
 						CumulativeSum += error;
 						CumulativeCount++;
 						if (CumulativeCount % 16 == 0)
@@ -300,6 +303,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 					}
 				}
 			}
+#endif
 
 			/*moveToTensorPtr(m, &MoveTensor(SortNetCount, 0));
 			SortTensor(SortNetCount, 0) = depth;
@@ -351,83 +355,83 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		return 0;
 	}
 
-	if (bestmove.isNullMove() == false)
-	{
-		if (rand() % 512 == 0)
-		{
-			for (int i = 0; i < oldmoves.size(); i++)
-			{
-				if (oldmoves[i] != bestmove)
-				{
-					Data* d = &Database[DBCounter];
-					d->pos.copyFromPosition(CurrentPos);
-					//d->eval = bestscore / 100.0;
-					//if (CurrentPos.Turn == COLOR_BLACK)
-					//	d->eval = -d->eval;
-					d->eval = 0.0;
-					moveToTensorPtr(oldmoves[i], d->move.mData);
+	//if (bestmove.isNullMove() == false && depth>=3)
+	//{
+	//	if (rand() % 2 == 0)
+	//	{
+	//		for (int i = 0; i < oldmoves.size(); i++)
+	//		{
+	//			if (oldmoves[i] != bestmove)
+	//			{
+	//				Data* d = &Database[DBCounter];
+	//				d->pos.copyFromPosition(CurrentPos);
+	//				//d->eval = bestscore / 100.0;
+	//				//if (CurrentPos.Turn == COLOR_BLACK)
+	//				//	d->eval = -d->eval;
+	//				d->eval = 0.0;
+	//				moveToTensorPtr(oldmoves[i], d->move.mData);
 
-					DBCounter++;
-					if (DBCounter == DATABASE_MAX_SIZE)
-					{
-						DBCounter = 0;
-						printf("DB reset\n");
-					}
+	//				DBCounter++;
+	//				if (DBCounter == DATABASE_MAX_SIZE)
+	//				{
+	//					DBCounter = 0;
+	//					printf("DB reset\n");
+	//				}
 
-					if (DBSize < DATABASE_MAX_SIZE)
-					{
-						DBSize++;
-					}
-				}
-			}
-			Data* d = &Database[DBCounter];
-			d->pos.copyFromPosition(CurrentPos);
-			//d->eval = bestscore / 100.0;
-			//if (CurrentPos.Turn == COLOR_BLACK)
-			//	d->eval = -d->eval;
-			d->eval = 1.0;
-			moveToTensorPtr(bestmove, d->move.mData);
+	//				if (DBSize < DATABASE_MAX_SIZE)
+	//				{
+	//					DBSize++;
+	//				}
+	//			}
+	//		}
+	//		Data* d = &Database[DBCounter];
+	//		d->pos.copyFromPosition(CurrentPos);
+	//		//d->eval = bestscore / 100.0;
+	//		//if (CurrentPos.Turn == COLOR_BLACK)
+	//		//	d->eval = -d->eval;
+	//		d->eval = 1.0;
+	//		moveToTensorPtr(bestmove, d->move.mData);
 
-			DBCounter++;
-			if (DBCounter == DATABASE_MAX_SIZE)
-			{
-				DBCounter = 0;
-				printf("DB reset\n");
-			}
+	//		DBCounter++;
+	//		if (DBCounter == DATABASE_MAX_SIZE)
+	//		{
+	//			DBCounter = 0;
+	//			printf("DB reset\n");
+	//		}
 
-			if (DBSize < DATABASE_MAX_SIZE)
-			{
-				DBSize++;
-			}
+	//		if (DBSize < DATABASE_MAX_SIZE)
+	//		{
+	//			DBSize++;
+	//		}
 
-			/*Position p;
-			d->pos.copyToPosition(p);
-			for (int i = 0; i < 64; i++)
-			{
-				assert(CurrentPos.Squares[i] == p.Squares[i]);
-			}*/
+	//		/*Position p;
+	//		d->pos.copyToPosition(p);
+	//		for (int i = 0; i < 64; i++)
+	//		{
+	//			assert(CurrentPos.Squares[i] == p.Squares[i]);
+	//		}*/
 
-			if (DBSize >= DATABASE_MAX_SIZE)
-			{
-				for (int epoch = 0; epoch < TRAIN_EPOCH_COUNT; epoch++)
-				{
-					for (uint64_t i = 0; i < BatchSize; i++)
-					{
-						size_t id = rand() % DBSize;
-						//Database[id].pos.Squares.print_raw();
-						memcpy(&PositionTensor(i * POSITION_TENSOR_SIZE), Database[id].pos.Squares.mData, sizeof(Float) * POSITION_TENSOR_SIZE);
-						memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
-						SortTensor(i) = Database[id].eval;
-					}
-					Float error = NetSort->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
-					CumulativeSum += error;
-					CumulativeCount++;
-					if (CumulativeCount % 16 == 0)
-						printf("Error: %f, Avg: %f, Cumulative Avg: %f\n", error, error / BatchSize, CumulativeSum / CumulativeCount);
-				}
-			}
-		}
-	}
+	//		if (DBSize >= DATABASE_MAX_SIZE)
+	//		{
+	//			for (int epoch = 0; epoch < TRAIN_EPOCH_COUNT; epoch++)
+	//			{
+	//				for (uint64_t i = 0; i < BatchSize; i++)
+	//				{
+	//					size_t id = rand() % DBSize;
+	//					//Database[id].pos.Squares.print_raw();
+	//					memcpy(&PositionTensor(i * POSITION_TENSOR_SIZE), Database[id].pos.Squares.mData, sizeof(Float) * POSITION_TENSOR_SIZE);
+	//					memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
+	//					SortTensor(i) = Database[id].eval;
+	//				}
+	//				Float error = NetSort->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
+	//				CumulativeSum += error;
+	//				CumulativeCount++;
+	//				if (CumulativeCount % 16 == 0)
+	//					printf("Error: %f, Avg: %f, Cumulative Avg: %f\n", error, error / BatchSize, CumulativeSum / CumulativeCount);
+	//			}
+	//		}
+	//	}
+	//}
 
 	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, bestmove); 
 	return bestscore;
@@ -524,7 +528,7 @@ int Engine::Negamax(int depth, int ply)
 			memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 			OutputEvalTensor(i) = Database[id].eval;
 		}
-		NetTrain->train(&PositionTensor, nullptr, &OutputEvalTensor, nullptr);
+		NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 	}
 	return bestscore;
 }

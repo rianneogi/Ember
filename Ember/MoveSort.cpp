@@ -188,31 +188,6 @@ void Engine::setKiller(const Move& m, int ply)
 
 Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 {
-	for (int i = 0; i < moves.size(); i++)
-	{
-		pos2posNN(&PositionTensor(i*POSITION_TENSOR_SIZE), CurrentPos);
-		moveToTensorPtr(moves[i], &MoveTensor(i, 0));
-	}
-
-	std::vector<Tensor> v;
-	v.push_back(PositionTensor);
-	v.push_back(MoveTensor);
-	v.push_back(Tensor());
-	//printf("data %d %d\n", PositionTensor.mData, MoveTensor.mData);
-	NetSort->mBoard->forward(v);
-	/*printf("data %d %d\n", NetSort->Input_Move->Data.mData, NetSort->mBoard->mPlaceholders[1]->mData);
-	for (int i = 0; i < MOVE_TENSOR_SIZE; i++)
-	{
-		printf("s %f %f ", NetSort->Input_Move->Data(i), MoveTensor(i));
-	}
-	printf("\n");*/
-	/*printf("AFTER\n");
-	for (int i = 0; i < moves.size(); i++)
-	{
-		printf("%s %f ", moves[i].toString().c_str(), NetSort->Output_Move->Data(i));
-	}
-	printf("\n");*/
-
 	int bigmoveid = current_move;
 	Move bigmove = moves.at(current_move);
 	
@@ -242,6 +217,22 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 	Move m = bigmove; //swap move
 	moves.at(bigmoveid) = moves.at(current_move);
 	moves.at(current_move) = m;
-	printf("%f\n", bigscore);
+	//printf("%f\n", bigscore);
 	return m;
+}
+
+void Engine::sortNet_forward(std::vector<Move>& moves)
+{
+	for (int i = 0; i < moves.size(); i++)
+	{
+		pos2posNN(&PositionTensor(i*POSITION_TENSOR_SIZE), CurrentPos);
+		moveToTensorPtr(moves[i], &MoveTensor(i, 0));
+	}
+
+	std::vector<Tensor> v;
+	v.push_back(PositionTensor);
+	v.push_back(MoveTensor);
+	v.push_back(Tensor());
+	
+	NetSort->mBoard->forward(v);
 }

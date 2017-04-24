@@ -2,7 +2,7 @@
 
 #include "SortNet.h"
 
-#define TRAINING_BUILD
+//#define TRAINING_BUILD
 #define DO_NULL_MOVE
 
 extern jmp_buf JumpEnv;
@@ -94,6 +94,7 @@ public:
 	Move getNextMove(std::vector<Move>& moves, int current_move, int ply);
 	void setKiller(const Move& m, int ply);
 	Move getNextMove_NN(std::vector<Move>& moves, int current_move, int ply);
+	void sortNet_forward(std::vector<Move>& moves);
 
 	//QSearch
 	int QSearch(int alpha, int beta);

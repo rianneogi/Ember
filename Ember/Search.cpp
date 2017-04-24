@@ -186,6 +186,9 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
+#ifndef TRAINING_BUILD
+	sortNet_forward(moves);
+#endif
 
 	std::vector<Move> oldmoves;
 	oldmoves.reserve(128);

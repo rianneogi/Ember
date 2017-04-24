@@ -169,6 +169,17 @@ Float SortNet::train(Tensor input_pos, Tensor input_move, Tensor output_eval, Te
 	return error;
 }
 
+Float SortNet::get_sort(Tensor position, Tensor move)
+{
+	std::vector<Tensor> v;
+	v.push_back(position);
+	v.push_back(move);
+	v.push_back(Tensor());
+	mBoard->forward(v);
+	//printf("ret %f", Output_Move->Data(0));
+	return Output_Move->Data(0);
+}
+
 void SortNet::save(std::string filename)
 {
 	mBoard->save_variables(filename);

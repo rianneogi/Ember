@@ -10,16 +10,18 @@ const size_t MOVE_TENSOR_SIZE = 64 + 64 + 6 + 7 + 7;
 
 Engine::Engine()
 	: BatchSize(BATCH_SIZE), PositionTensor(make_shape(BATCH_SIZE, 8, 8, 14)),
-	OutputMoveTensor(make_shape(BATCH_SIZE, 2, 64)), OutputEvalTensor(make_shape(BATCH_SIZE, 1)),
-	MoveTensor(make_shape(BATCH_SIZE, MOVE_TENSOR_SIZE)), SortTensor(make_shape(BATCH_SIZE, 1))
+	OutputMoveTensor(make_shape(BATCH_SIZE, 1)), OutputEvalTensor(make_shape(BATCH_SIZE, 1)),
+	MoveTensor(make_shape(BATCH_SIZE, MOVE_TENSOR_SIZE)), SortTensor(make_shape(BATCH_SIZE, 1)),
+	MoveNN(make_shape(MOVE_TENSOR_SIZE))
 {
 	Database = new Data[DATABASE_MAX_SIZE];
 	DBCounter = 0;
 	DBSize = 0;
 
-	NetPlay = new EvalNet(1);
-	NetTrain = new EvalNet(BatchSize);
-	NetSort = new SortNet(BatchSize);
+	EvalNet_Play = new EvalNet(1);
+	EvalNet_Train = new EvalNet(BatchSize);
+	SortNet_Play = new SortNet(1);
+	SortNet_Train = new SortNet(BatchSize);
 
 	for (int i = 0; i<2; i++)
 	{
@@ -52,30 +54,37 @@ Engine::~Engine()
 	delete[] Database;
 	delete Table;
 
-	if(NetTrain)
-		delete NetTrain;
-	if(NetPlay)
-		delete NetPlay;
-	if (NetSort)
-		delete NetSort;
+	if(EvalNet_Train)
+		delete EvalNet_Train;
+	if(EvalNet_Play)
+		delete EvalNet_Play;
+	if (SortNet_Train)
+		delete SortNet_Train;
 
 	Table = NULL;
 	Database = NULL;
-	NetTrain = NULL;
-	NetPlay = NULL;
-	NetSort = NULL;
+	EvalNet_Train = NULL;
+	EvalNet_Play = NULL;
+	SortNet_Train = NULL;
+	SortNet_Play = NULL;
 }
 
-void Engine::load_nets(std::string path)
+void Engine::load_evalnets(std::string path)
 {
-	if(NetTrain)
-		NetTrain->load(path);
+	if(EvalNet_Train)
+		EvalNet_Train->load(path);
 
-	if(NetPlay)
-		NetPlay->load(path);
+	if(EvalNet_Play)
+		EvalNet_Play->load(path);
+}
 
-	if (NetSort)
-		NetSort->load(path);
+void Engine::load_sortnets(std::string path)
+{
+	if (SortNet_Train)
+		SortNet_Train->load(path);
+
+	if (SortNet_Play)
+		SortNet_Play->load(path);
 }
 
 void Engine::learn_eval(uint64_t num_games)
@@ -141,7 +150,7 @@ void Engine::learn_eval(uint64_t num_games)
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
+							error += EvalNet_Train->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 							//printf("Error: %f\n", error);
 						}
 					}
@@ -256,7 +265,7 @@ void Engine::learn_eval_NN(uint64_t num_games, double time_limit)
 						}
 						for (int run = 0; run < 1; run++)
 						{
-							error += NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
+							error += EvalNet_Train->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 							//printf("Error: %f\n", mNet->train(InputTensor, nullptr, &OutputEvalTensor));
 						}
 					}
@@ -430,7 +439,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 				}
 				for (int run = 0; run < num_runs; run++)
 				{
-					error += NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
+					error += EvalNet_Train->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 					//updateVariables_TD(batch*BatchSize, BatchSize);
 				}
 			}
@@ -446,7 +455,7 @@ void Engine::learn_eval_TD(uint64_t num_games, double time_limit)
 			//	}
 			//	for (int run = 0; run < num_runs; run++)
 			//	{
-			//		error += NetTrain->train(InputTensor, nullptr, &OutputEvalTensor);
+			//		error += EvalNet_Train->train(InputTensor, nullptr, &OutputEvalTensor);
 			//		updateVariables_TD(DBSize%BatchSize);
 			//	}
 			//}
@@ -559,7 +568,7 @@ void Engine::learn_eval_TD_pgn(const PGNData& pgn, double time_limit)
 					error = 0;
 					for (int run = 0; run < num_runs; run++)
 					{
-						error += NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
+						error += EvalNet_Train->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 						//updateVariables_TD(batch*BatchSize, BatchSize);
 					}
 				}
@@ -630,7 +639,7 @@ void Engine::learn_eval_pgn(const PGNData& pgn, double time_limit)
 			//		error = 0;
 			//		for (int run = 0; run < num_runs; run++)
 			//		{
-			//			error += NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+			//			error += EvalNet_Train->train(InputTensor, &OutputEvalTensor, nullptr);
 			//			//updateVariables_TD(batch*BatchSize, BatchSize);
 			//		}
 			//	}

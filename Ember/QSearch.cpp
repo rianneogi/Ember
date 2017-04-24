@@ -73,7 +73,7 @@ int Engine::QSearch(int alpha, int beta)
 	//			//memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 	//			OutputEvalTensor(i) = Database[id].eval;
 	//		}
-	//		Float error = NetTrain->train(InputTensor, &OutputEvalTensor, nullptr);
+	//		Float error = EvalNet_Train->train(InputTensor, &OutputEvalTensor, nullptr);
 	//		printf("Error: %f, Avg: %f\n", error, error / BatchSize);
 	//	}
 	//}

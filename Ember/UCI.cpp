@@ -486,6 +486,7 @@ void UCI::run_uci()
 		{
 			std::vector<Move> vec;
 			Ember.CurrentPos.generateMoves(vec);
+			Ember.sortNet_forward(vec);
 			for (int i = 0; i < vec.size(); i++)
 			{
 				Move bm = Ember.getNextMove_NN(vec, i, 0);

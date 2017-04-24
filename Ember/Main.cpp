@@ -17,7 +17,7 @@ int main()
 #ifdef TRAINING_BUILD
 	Engine e;
 	printf("Loading weights\n");
-	//e.load_nets(path_weights);
+	//e.load_evalnets(path_weights);
 	//_set_error_mode(_OUT_TO_MSGBOX);
 	printf("Loading pgn\n");
 	PGNData pgn(path_pgn);
@@ -27,11 +27,11 @@ int main()
 	e.learn_eval_pgn(pgn, 60*60);
 	
 	printf("Saving weights\n");
-	e.NetTrain->save(path_weights);
-	e.NetSort->save(path_weights);
+	e.EvalNet_Train->save(path_weights);
+	e.SortNet_Train->save(path_weights);
 	printf("Done\n");
 
-	e.NetPlay->mBoard->copy_variables(e.NetTrain->mBoard);
+	e.EvalNet_Play->mBoard->copy_variables(e.EvalNet_Train->mBoard);
 
 	/*e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/4QB2/2P2N2/P4PPP/1R2K2R b K - 2 0");
 	e.CurrentPos.display(0);
@@ -62,7 +62,7 @@ int main()
 
 #else
 	UCI uci;
-	uci.Ember.load_nets(path_weights);
+	uci.Ember.load_sortnets(path_weights);
 	uci.run_uci();
 #endif
 

@@ -43,11 +43,13 @@ public:
 	uint64_t AllocatedTime;
 	int TimeMode;
 
-	EvalNet* NetPlay;
-	EvalNet* NetTrain;
-	SortNet* NetSort;
+	EvalNet* EvalNet_Play;
+	EvalNet* EvalNet_Train;
+	SortNet* SortNet_Play;
+	SortNet* SortNet_Train;
 
 	PositionNN PosNN;
+	Tensor MoveNN;
 	Tensor PositionTensor;
 	Tensor OutputMoveTensor;
 	Tensor OutputEvalTensor;
@@ -72,7 +74,8 @@ public:
 	Engine();
 	~Engine();
 
-	void load_nets(std::string path);
+	void load_evalnets(std::string path);
+	void load_sortnets(std::string path);
 
 	//Search
 	SearchResult go(int mode, int wtime, int btime, int winc, int binc, bool print);

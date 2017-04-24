@@ -191,7 +191,7 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 	int bigmoveid = current_move;
 	Move bigmove = moves.at(current_move);
 	
-	Float bigscore = NetSort->Output_Move->Data(current_move);
+	Float bigscore = OutputMoveTensor(current_move);
 	Float x;
 	
 	for (int i = current_move+1; i < moves.size(); i++)
@@ -203,7 +203,7 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 			bigmove = moves.at(i);
 			break;
 		}
-		x = NetSort->Output_Move->Data(i);
+		x = OutputMoveTensor(i);
 		if (x > bigscore)
 		{
 			//printf("%f bigger than %f, %d\n", x, bigscore, i);
@@ -214,25 +214,29 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 	}
 	//if (bigmoveid != current_move)
 	//	printf("SWAPPED %d %d\n", bigmoveid, current_move);
-	Move m = bigmove; //swap move
-	moves.at(bigmoveid) = moves.at(current_move);
-	moves.at(current_move) = m;
+	
+	moves.at(bigmoveid) = moves.at(current_move); //swap move
+	moves.at(current_move) = bigmove;
+
+	OutputMoveTensor(bigmoveid) = OutputMoveTensor(current_move); //swap score
+	OutputMoveTensor(current_move) = bigscore;
+	
 	//printf("%f\n", bigscore);
-	return m;
+	return bigmove;
 }
 
 void Engine::sortNet_forward(std::vector<Move>& moves)
 {
-	for (int i = 0; i < moves.size(); i++)
-	{
-		pos2posNN(&PositionTensor(i*POSITION_TENSOR_SIZE), CurrentPos);
-		moveToTensorPtr(moves[i], &MoveTensor(i, 0));
-	}
-
 	std::vector<Tensor> v;
 	v.push_back(PositionTensor);
 	v.push_back(MoveTensor);
 	v.push_back(Tensor());
-	
-	NetSort->mBoard->forward(v);
+	for (int i = 0; i < moves.size(); i++)
+	{
+		pos2posNN(PosNN.Squares.mData, CurrentPos);
+		moveToTensorPtr(moves[i], MoveNN.mData);
+		OutputMoveTensor(i) = SortNet_Play->get_sort(PosNN.Squares, MoveNN);
+		//printf("s %d %d %d %d\n", PosNN.Squares.mData, SortNet_Play->Input_Pos->Data.mData, MoveNN.mData, SortNet_Play->Input_Move->Data.mData);
+		//printf("val %f\n", OutputMoveTensor(i));
+	}
 }

@@ -113,7 +113,7 @@ Float Engine::LeafEval_NN()
 	//	memcpy(&InputTensor(i, 0, 0, 0), PosNN.Squares.mData, sizeof(Float) * 8 * 8 * 14);
 	//}
 	
-	Float eval = NetPlay->get_eval(PosNN.Squares) * 100;
+	Float eval = EvalNet_Play->get_eval(PosNN.Squares) * 100;
 	if (CurrentPos.Turn == COLOR_BLACK)
 		eval = -eval;
 	

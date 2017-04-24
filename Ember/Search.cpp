@@ -297,7 +297,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 							memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
 							SortTensor(i) = Database[id].eval;
 						}
-						Float error = NetSort->train(PositionTensor, MoveTensor, Tensor(), SortTensor);
+						Float error = SortNet_Train->train(PositionTensor, MoveTensor, Tensor(), SortTensor);
 						CumulativeSum += error/BatchSize;
 						CumulativeCount++;
 						if (CumulativeCount % 16 == 0)
@@ -313,7 +313,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 			SortNetCount++;
 			if (SortNetCount >= BatchSize)
 			{
-				NetSort->train(MoveTensor, SortTensor);
+				SortNet_Train->train(MoveTensor, SortTensor);
 				SortNetCount = 0;
 			}
 
@@ -325,7 +325,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 				SortNetCount++;
 				if (SortNetCount >= BatchSize)
 				{
-					NetSort->train(MoveTensor, SortTensor);
+					SortNet_Train->train(MoveTensor, SortTensor);
 					SortNetCount = 0;
 				}
 			}*/
@@ -425,7 +425,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	//					memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
 	//					SortTensor(i) = Database[id].eval;
 	//				}
-	//				Float error = NetSort->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
+	//				Float error = SortNet_Train->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
 	//				CumulativeSum += error;
 	//				CumulativeCount++;
 	//				if (CumulativeCount % 16 == 0)
@@ -530,7 +530,7 @@ int Engine::Negamax(int depth, int ply)
 			memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
 			OutputEvalTensor(i) = Database[id].eval;
 		}
-		NetTrain->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
+		EvalNet_Train->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
 	}
 	return bestscore;
 }

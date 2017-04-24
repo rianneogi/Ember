@@ -26,7 +26,7 @@ void EvalNet::init_net()
 
 	Input_Pos = mBoard->newBlob(make_shape(BatchSize, POSITION_TENSOR_SIZE));
 
-	mBoard->addPlaceholder(Input_Pos->Data);
+	mBoard->addPlaceholder(&Input_Pos->Data);
 
 	OutputEvalFC = mBoard->newBlob(make_shape(BatchSize, 128));
 	Output_Eval = mBoard->newBlob(make_shape(BatchSize, 1));
@@ -37,7 +37,7 @@ void EvalNet::init_net()
 	mBoard->addNeuron(new FullyConnectedNeuron(OutputEvalFC, Output_Eval, 1));
 
 	mBoard->addErrorFunction(new L1Error(Output_Eval));
-	mBoard->addPlaceholder(mBoard->mErrorFuncs[0]->mTarget);
+	mBoard->addPlaceholder(&mBoard->mErrorFuncs[0]->mTarget);
 }
 
 Float EvalNet::train(Tensor input_pos, Tensor input_move, Tensor output_eval, Tensor output_move)

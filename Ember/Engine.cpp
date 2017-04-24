@@ -73,6 +73,9 @@ void Engine::load_nets(std::string path)
 
 	if(NetPlay)
 		NetPlay->load(path);
+
+	if (NetSort)
+		NetSort->load(path);
 }
 
 void Engine::learn_eval(uint64_t num_games)

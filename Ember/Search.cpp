@@ -290,13 +290,12 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 						for (uint64_t i = 0; i < BatchSize; i++)
 						{
 							size_t id = rand() % DBSize;
-							//Database[id].pos.Squares.print_raw();
 							memcpy(&PositionTensor(i * POSITION_TENSOR_SIZE), Database[id].pos.Squares.mData, sizeof(Float) * POSITION_TENSOR_SIZE);
 							memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
 							SortTensor(i) = Database[id].eval;
 						}
 						Float error = NetSort->train(PositionTensor, MoveTensor, Tensor(), SortTensor);
-						CumulativeSum += error;
+						CumulativeSum += error/BatchSize;
 						CumulativeCount++;
 						if (CumulativeCount % 16 == 0)
 							printf("Error: %f, Avg: %f, Cumulative Avg: %f\n", error, error / BatchSize, CumulativeSum / CumulativeCount);

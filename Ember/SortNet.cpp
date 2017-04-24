@@ -27,8 +27,8 @@ void SortNet::init_net()
 	Input_Pos = mBoard->newBlob(make_shape(BatchSize, 8, 8, 14));
 	Input_Move = mBoard->newBlob(make_shape(BatchSize, MOVE_TENSOR_SIZE));
 
-	mBoard->addPlaceholder(Input_Pos->Data);
-	mBoard->addPlaceholder(Input_Move->Data);
+	mBoard->addPlaceholder(&Input_Pos->Data);
+	mBoard->addPlaceholder(&Input_Move->Data);
 
 	int king_output_size = 1;
 	int diag_output_size = 1;
@@ -112,7 +112,7 @@ void SortNet::init_net()
 	mBoard->addErrorFunction(new L1Error(Output_Move));
 	//mBoard->addErrorFunction(new MeanSquaredError(Output_Move));
 
-	mBoard->addPlaceholder(mBoard->mErrorFuncs[0]->mTarget);
+	mBoard->addPlaceholder(&mBoard->mErrorFuncs[0]->mTarget);
 	//mBoard->addPlaceholder(mBoard->mErrorFuncs[1]->mTarget);
 
 
@@ -162,7 +162,7 @@ Float SortNet::train(Tensor input_pos, Tensor input_move, Tensor output_eval, Te
 	Float error = mBoard->backprop(v);
 	/*for (int i = 0; i < BatchSize; i++)
 	{
-	printf("s %f %f %f ", Output_Move->Data(i), Output_Move->Delta(i), output_move->operator()(i));
+		printf("s %f %f %f ", Output_Move->Data(i), Output_Move->Delta(i), output_move(i));
 	}
 	printf("\n");*/
 	mBoard->mOptimizer->optimize();

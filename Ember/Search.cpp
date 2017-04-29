@@ -239,7 +239,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 			bestmove = m;
 
 #ifdef TRAINING_BUILD
-			if (rand() % 512 == 0 && depth >= 0)
+			if (rand() % 32 == 0 && depth >= 0)
 			{
 				for (int i = 0; i < oldmoves.size(); i++)
 				{
@@ -357,83 +357,74 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		return 0;
 	}
 
-	//if (bestmove.isNullMove() == false && depth>=3)
-	//{
-	//	if (rand() % 2 == 0)
-	//	{
-	//		for (int i = 0; i < oldmoves.size(); i++)
-	//		{
-	//			if (oldmoves[i] != bestmove)
-	//			{
-	//				Data* d = &Database[DBCounter];
-	//				d->pos.copyFromPosition(CurrentPos);
-	//				//d->eval = bestscore / 100.0;
-	//				//if (CurrentPos.Turn == COLOR_BLACK)
-	//				//	d->eval = -d->eval;
-	//				d->eval = 0.0;
-	//				moveToTensorPtr(oldmoves[i], d->move.mData);
+#ifdef TRAINING_BUILD
+	if (bestmove.isNullMove()==false && rand() % 32 == 0 && depth >= 0)
+	{
+		for (int i = 0; i < oldmoves.size(); i++)
+		{
+			if (oldmoves[i] != bestmove)
+			{
+				Data* d = &Database[DBCounter];
+				d->pos.copyFromPosition(CurrentPos);
+				//d->eval = bestscore / 100.0;
+				//if (CurrentPos.Turn == COLOR_BLACK)
+				//	d->eval = -d->eval;
+				d->eval = 0.0;
+				moveToTensorPtr(oldmoves[i], d->move.mData);
 
-	//				DBCounter++;
-	//				if (DBCounter == DATABASE_MAX_SIZE)
-	//				{
-	//					DBCounter = 0;
-	//					printf("DB reset\n");
-	//				}
+				DBCounter++;
+				if (DBCounter == DATABASE_MAX_SIZE)
+				{
+					DBCounter = 0;
+					printf("DB reset\n");
+				}
 
-	//				if (DBSize < DATABASE_MAX_SIZE)
-	//				{
-	//					DBSize++;
-	//				}
-	//			}
-	//		}
-	//		Data* d = &Database[DBCounter];
-	//		d->pos.copyFromPosition(CurrentPos);
-	//		//d->eval = bestscore / 100.0;
-	//		//if (CurrentPos.Turn == COLOR_BLACK)
-	//		//	d->eval = -d->eval;
-	//		d->eval = 1.0;
-	//		moveToTensorPtr(bestmove, d->move.mData);
+				if (DBSize < DATABASE_MAX_SIZE)
+				{
+					DBSize++;
+				}
+			}
+		}
+		Data* d = &Database[DBCounter];
+		d->pos.copyFromPosition(CurrentPos);
+		//d->eval = bestscore / 100.0;
+		//if (CurrentPos.Turn == COLOR_BLACK)
+		//	d->eval = -d->eval;
+		d->eval = 1.0;
+		moveToTensorPtr(bestmove, d->move.mData);
 
-	//		DBCounter++;
-	//		if (DBCounter == DATABASE_MAX_SIZE)
-	//		{
-	//			DBCounter = 0;
-	//			printf("DB reset\n");
-	//		}
+		DBCounter++;
+		if (DBCounter == DATABASE_MAX_SIZE)
+		{
+			DBCounter = 0;
+			printf("DB reset\n");
+		}
 
-	//		if (DBSize < DATABASE_MAX_SIZE)
-	//		{
-	//			DBSize++;
-	//		}
+		if (DBSize < DATABASE_MAX_SIZE)
+		{
+			DBSize++;
+		}
 
-	//		/*Position p;
-	//		d->pos.copyToPosition(p);
-	//		for (int i = 0; i < 64; i++)
-	//		{
-	//			assert(CurrentPos.Squares[i] == p.Squares[i]);
-	//		}*/
-
-	//		if (DBSize >= DATABASE_MAX_SIZE)
-	//		{
-	//			for (int epoch = 0; epoch < TRAIN_EPOCH_COUNT; epoch++)
-	//			{
-	//				for (uint64_t i = 0; i < BatchSize; i++)
-	//				{
-	//					size_t id = rand() % DBSize;
-	//					//Database[id].pos.Squares.print_raw();
-	//					memcpy(&PositionTensor(i * POSITION_TENSOR_SIZE), Database[id].pos.Squares.mData, sizeof(Float) * POSITION_TENSOR_SIZE);
-	//					memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
-	//					SortTensor(i) = Database[id].eval;
-	//				}
-	//				Float error = SortNet_Train->train(&PositionTensor, &MoveTensor, nullptr, &SortTensor);
-	//				CumulativeSum += error;
-	//				CumulativeCount++;
-	//				if (CumulativeCount % 16 == 0)
-	//					printf("Error: %f, Avg: %f, Cumulative Avg: %f\n", error, error / BatchSize, CumulativeSum / CumulativeCount);
-	//			}
-	//		}
-	//	}
-	//}
+		if (DBSize >= DATABASE_MAX_SIZE)
+		{
+			for (int epoch = 0; epoch < TRAIN_EPOCH_COUNT; epoch++)
+			{
+				for (uint64_t i = 0; i < BatchSize; i++)
+				{
+					size_t id = rand() % DBSize;
+					memcpy(&PositionTensor(i * POSITION_TENSOR_SIZE), Database[id].pos.Squares.mData, sizeof(Float) * POSITION_TENSOR_SIZE);
+					memcpy(&MoveTensor(i * MOVE_TENSOR_SIZE), &Database[id].move.mData, sizeof(Float) * MOVE_TENSOR_SIZE);
+					SortTensor(i) = Database[id].eval;
+				}
+				Float error = SortNet_Train->train(PositionTensor, MoveTensor, Tensor(), SortTensor);
+				CumulativeSum += error / BatchSize;
+				CumulativeCount++;
+				if (CumulativeCount % 16 == 0)
+					printf("Error: %f, Avg: %f, Cumulative Avg: %f\n", error, error / BatchSize, CumulativeSum / CumulativeCount);
+			}
+		}
+	}
+#endif
 
 	Table->Save(CurrentPos.HashKey, depth, bestscore, bound, bestmove); 
 	return bestscore;

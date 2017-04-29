@@ -203,6 +203,22 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 			bigmove = moves.at(i);
 			break;
 		}
+		int from = moves[i].getFrom();
+		int to = moves[i].getTo();
+		if (from == KillerMoves[0][ply].getFrom() && to == KillerMoves[0][ply].getTo()) //if its a killer move
+		{
+			bigscore = x;
+			bigmoveid = i;
+			bigmove = moves.at(i);
+			break;
+		}
+		else if (from == KillerMoves[1][ply].getFrom() && to == KillerMoves[1][ply].getTo())
+		{
+			bigscore = x;
+			bigmoveid = i;
+			bigmove = moves.at(i);
+			break;
+		}
 		x = OutputMoveTensor(i);
 		if (x > bigscore)
 		{
@@ -221,7 +237,7 @@ Move Engine::getNextMove_NN(std::vector<Move>& moves, int current_move, int ply)
 	OutputMoveTensor(bigmoveid) = OutputMoveTensor(current_move); //swap score
 	OutputMoveTensor(current_move) = bigscore;
 	
-	//printf("%f\n", bigscore);
+	//1printf("%f\n", bigscore);
 	return bigmove;
 }
 
@@ -236,7 +252,5 @@ void Engine::sortNet_forward(std::vector<Move>& moves)
 		pos2posNN(PosNN.Squares.mData, CurrentPos);
 		moveToTensorPtr(moves[i], MoveNN.mData);
 		OutputMoveTensor(i) = SortNet_Play->get_sort(PosNN.Squares, MoveNN);
-		//printf("s %d %d %d %d\n", PosNN.Squares.mData, SortNet_Play->Input_Pos->Data.mData, MoveNN.mData, SortNet_Play->Input_Move->Data.mData);
-		//printf("val %f\n", OutputMoveTensor(i));
 	}
 }

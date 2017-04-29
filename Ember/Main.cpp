@@ -11,13 +11,13 @@ int main()
 	magicinit();
 	datainit();
 
-	std::string path_weights = "Data/variables_superconv.bin";
+	std::string path_weights = "Data/variables_fc_v1.bin";
 	std::string path_pgn = "Data/KingBase/KingBase2016-03-A80-A99.pgn";
 
 #ifdef TRAINING_BUILD
 	Engine e;
 	printf("Loading weights\n");
-	//e.load_evalnets(path_weights);
+	//e.load_sortnets(path_weights);
 	//_set_error_mode(_OUT_TO_MSGBOX);
 	printf("Loading pgn\n");
 	PGNData pgn(path_pgn);
@@ -32,6 +32,7 @@ int main()
 	printf("Done\n");
 
 	e.EvalNet_Play->mBoard->copy_variables(e.EvalNet_Train->mBoard);
+	e.SortNet_Play->mBoard->copy_variables(e.SortNet_Train->mBoard);
 
 	/*e.CurrentPos.loadFromFEN("2k2b1r/pp1r1ppp/2n1pq2/2p5/4QB2/2P2N2/P4PPP/1R2K2R b K - 2 0");
 	e.CurrentPos.display(0);

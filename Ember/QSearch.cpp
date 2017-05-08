@@ -4,83 +4,70 @@ int PieceMaterial[7] = { 100,300,300,500,900,0,0 };
 
 int Engine::QSearch(int alpha, int beta)
 {
-	//quisctime.Start();
-
 	if (isDraw()) return 0;
 
 	NodeCount++;
-	if (NodeCount %1024 == 0)
+	if (NodeCount % CHECKUP_NODE_COUNT == 0)
 	{
-		checkup();
-		//nodes = 0;
+		if (TimeMode == MODE_MOVETIME || TimeMode == MODE_DEFAULT)
+			checkup();
 	}
-	/*if(pos.getGameStatus()!=STATUS_NOTOVER)
+	
+#ifdef TRAIN_EVAL
+	if (DoTraining && rand() % 256 == 0)
 	{
-	int val = LeafEval(alpha,beta);
-	if(val >= beta)
-	return beta;
-	else if(val < alpha)
-	return alpha;
-	return val;
-	}*/
-	int stand_pat = 0;
-	//ProbeStruct probe = Table.Probe(pos.TTKey, -1, alpha, beta);
-	//if (probe.found && probe.entry->bound == TT_EXACT)
-	//{
-	//	return probe.score;
-	//	stand_pat = probe.score; //use TT probe as leafeval
-	//}
-	//else
-	//{
-#ifdef TRAINING_BUILD
-	stand_pat = LeafEval_MatOnly();
+		//printf("train\n");
+		DoTraining = false;
+		int search = AlphaBeta(-CONST_INF, CONST_INF, 1, 0);
+		DoTraining = true;
+		//printf("true\n");
 
-	//if (rand() % 20 == 0)
-	//{
-	//	Data* d = &Database[DBCounter];
-	//	d->pos.copyFromPosition(CurrentPos);
-	//	d->eval = stand_pat / 100.0;
-	//	if (CurrentPos.Turn == COLOR_BLACK)
-	//		d->eval = -d->eval;
-	//	//moveToTensor(m, &d->move);
+		Data* d = &Database[DBCounter];
+		d->pos.copyFromPosition(CurrentPos);
+		d->eval = search / 100.0;
+		if (CurrentPos.Turn == COLOR_BLACK)
+			d->eval = -d->eval;
+		//moveToTensor(m, &d->move);
 
-	//	Position p;
-	//	d->pos.copyToPosition(p);
-	//	for (int i = 0; i < 64; i++)
-	//	{
-	//		assert(CurrentPos.Squares[i] == p.Squares[i]);
-	//	}
+		Position p;
+		d->pos.copyToPosition(p);
+		for (int i = 0; i < 64; i++)
+		{
+			assert(CurrentPos.Squares[i] == p.Squares[i]);
+		}
 
-	//	DBCounter++;
-	//	if (DBCounter == DATABASE_MAX_SIZE)
-	//	{
-	//		DBCounter = 0;
-	//		printf("DB reset\n");
-	//	}
+		DBCounter++;
+		if (DBCounter == DATABASE_MAX_SIZE)
+		{
+			DBCounter = 0;
+			printf("DB reset\n");
+		}
 
-	//	if (DBSize < DATABASE_MAX_SIZE)
-	//	{
-	//		DBSize++;
-	//	}
+		if (DBSize < DATABASE_MAX_SIZE)
+		{
+			DBSize++;
+		}
 
-	//	if (DBSize >= DATABASE_MAX_SIZE)
-	//	{
-	//		for (uint64_t i = 0; i < BatchSize; i++)
-	//		{
-	//			size_t id = rand() % DBSize;
-	//			//Database[id].pos.Squares.print_raw();
-	//			memcpy(&InputTensor(i * 14 * 8 * 8), Database[id].pos.Squares.mData, sizeof(Float) * 14 * 8 * 8);
-	//			//memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
-	//			OutputEvalTensor(i) = Database[id].eval;
-	//		}
-	//		Float error = EvalNet_Train->train(InputTensor, &OutputEvalTensor, nullptr);
-	//		printf("Error: %f, Avg: %f\n", error, error / BatchSize);
-	//	}
-	//}
-#else
-	stand_pat = LeafEval();
+		if (DBSize >= DATABASE_MAX_SIZE)
+		{
+			for (uint64_t i = 0; i < BatchSize; i++)
+			{
+				size_t id = rand() % DBSize;
+				//Database[id].pos.Squares.print_raw();
+				memcpy(&PositionTensor(i * 14 * 8 * 8), Database[id].pos.Squares.mData, sizeof(Float) * 14 * 8 * 8);
+				//memcpy(&OutputMoveTensor(i * 2 * 8), &Database[id].move.mData, sizeof(Float) * 2 * 64);
+				OutputEvalTensor(i) = Database[id].eval;
+			}
+			Float error = EvalNet_Train->train(PositionTensor, Tensor(), OutputEvalTensor, Tensor());
+			CumulativeSum += error/BatchSize;
+			CumulativeCount++;
+			if (CumulativeCount % 16 == 0)
+				printf("Error: %f, Avg: %f\n", error / BatchSize, CumulativeSum/CumulativeCount);
+		}
+	}
 #endif
-	//} 
+
+	int stand_pat = LeafEval_MatOnly();
 	if (stand_pat >= beta) //standpat
 	{
 		return stand_pat;

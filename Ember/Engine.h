@@ -2,13 +2,15 @@
 
 #include "SortNet.h"
 
-//#define TRAINING_BUILD
+//#define TRAIN_MOVESORT
+#define TRAIN_EVAL
 #define DO_NULL_MOVE
 
 extern jmp_buf JumpEnv;
 
 extern const int CONST_INF; 
 extern const int DATABASE_MAX_SIZE;
+extern const int CHECKUP_NODE_COUNT;
 
 enum TimeMode { MODE_DEFAULT, MODE_MOVETIME, MODE_INF, MODE_DEPTH };
 
@@ -71,6 +73,8 @@ public:
 	size_t CumulativeCount;
 	Float CumulativeSum;
 
+	bool DoTraining;
+
 	Engine();
 	~Engine();
 
@@ -113,6 +117,7 @@ public:
 
 	void checkup()
 	{
+		printf("checkup\n");
 		Timer.Stop();
 		if (Timer.ElapsedMilliseconds() >= AllocatedTime)
 		{

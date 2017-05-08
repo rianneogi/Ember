@@ -11,10 +11,10 @@ int main()
 	magicinit();
 	datainit();
 
-	std::string path_weights = "Data/variables_fc_v1.bin";
+	std::string path_weights = "Data/eval_fc_128_v1.bin";
 	std::string path_pgn = "Data/KingBase/KingBase2016-03-A80-A99.pgn";
 
-#ifdef TRAINING_BUILD
+#ifdef TRAIN_EVAL
 	Engine e;
 	printf("Loading weights\n");
 	//e.load_sortnets(path_weights);
@@ -28,7 +28,7 @@ int main()
 	
 	printf("Saving weights\n");
 	e.EvalNet_Train->save(path_weights);
-	e.SortNet_Train->save(path_weights);
+	//e.SortNet_Train->save(path_weights);
 	printf("Done\n");
 
 	e.EvalNet_Play->mBoard->copy_variables(e.EvalNet_Train->mBoard);

@@ -2,6 +2,7 @@
 
 const int DATABASE_MAX_SIZE = 14400;
 const int CONST_INF = 10000;
+const int CHECKUP_NODE_COUNT = 1024;
 
 const int BATCH_SIZE = 144;
 
@@ -587,6 +588,8 @@ void Engine::learn_eval_pgn(const PGNData& pgn, double time_limit)
 	int play_count = 12;
 	size_t games_filled = 0;
 
+	DoTraining = true;
+
 	//Position StartPos;
 
 	for (size_t i = 0; i < pgn.Games.size(); i++)
@@ -616,7 +619,7 @@ void Engine::learn_eval_pgn(const PGNData& pgn, double time_limit)
 			CurrentPos.makeMove(m);*/
 			//printf("  ---Move %d---\n", j+1);
 			//Play game
-			SearchResult search = go(MODE_DEPTH, 5, 1000, 0, 0, false);
+			SearchResult search = go(MODE_DEPTH, 2, 1000, 0, 0, false);
 
 			
 			//games_filled++;

@@ -65,7 +65,7 @@ SearchResult Engine::go(int mode, int wtime, int btime, int winc, int binc, bool
 
 	Timer.Reset();
 	Timer.Start();
-	for (int depth = 1; depth < MAXDEPTH; depth++)
+	for (int depth = 1; depth <= MAXDEPTH; depth++)
 	{
 		best = go_alphabeta(depth);
 
@@ -120,15 +120,15 @@ SearchResult Engine::go_alphabeta(int depth)
 int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 {
 	NodeCount++;
-	if (NodeCount % 1028 == 0)
+	if (NodeCount % CHECKUP_NODE_COUNT == 0)
 	{
-		if(TimeMode==MODE_MOVETIME || TimeMode==MODE_DEFAULT)
+		if (TimeMode == MODE_MOVETIME || TimeMode == MODE_DEFAULT)
 			checkup();
 	}
 	
 	if (depth == 0)
 	{
-#ifdef TRAINING_BUILD
+#ifdef TRAIN_MOVESORT
 		return QSearch(alpha, beta);
 #else
 		return QSearch(alpha, beta);
@@ -186,7 +186,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	std::vector<Move> moves;
 	moves.reserve(128);
 	CurrentPos.generateMoves(moves);
-#ifndef TRAINING_BUILD
+#ifndef TRAIN_MOVESORT
 	sortNet_forward(moves);
 #endif
 
@@ -199,7 +199,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 	bool found_legal = false;
 	for (int i = 0; i < moves.size(); i++)
 	{
-#ifdef TRAINING_BUILD
+#ifdef TRAIN_MOVESORT
 		Move m = getNextMove(moves, i, ply);
 #else
 		Move m = getNextMove_NN(moves, i, ply);
@@ -238,7 +238,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 			Table->Save(CurrentPos.HashKey, depth, bestscore, TT_BETA, m);
 			bestmove = m;
 
-#ifdef TRAINING_BUILD
+#ifdef TRAIN_MOVESORT
 			if (rand() % 32 == 0 && depth >= 0)
 			{
 				for (int i = 0; i < oldmoves.size(); i++)
@@ -357,7 +357,7 @@ int Engine::AlphaBeta(int alpha, int beta, int depth, int ply)
 		return 0;
 	}
 
-#ifdef TRAINING_BUILD
+#ifdef TRAIN_MOVESORT
 	if (bestmove.isNullMove()==false && rand() % 32 == 0 && depth >= 0)
 	{
 		for (int i = 0; i < oldmoves.size(); i++)
